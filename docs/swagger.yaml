@@ -1,0 +1,949 @@
+basePath: /
+definitions:
+  accountant.ErrorResponse:
+    properties:
+      error:
+        type: string
+      message:
+        type: string
+    type: object
+  accountant.GetOperatorResponse:
+    properties:
+      has_next:
+        type: boolean
+      has_prev:
+        type: boolean
+      limit:
+        type: integer
+      operators:
+        items:
+          $ref: '#/definitions/accountant.Operator'
+        type: array
+      page:
+        type: integer
+      total_count:
+        type: integer
+    type: object
+  accountant.Operator:
+    properties:
+      is_active:
+        type: boolean
+      park_no:
+        type: string
+      total_payment:
+        type: number
+      user_id:
+        type: integer
+      username:
+        type: string
+    type: object
+  accountant.ResultById:
+    properties:
+      end_at:
+        type: string
+      opertor_id:
+        type: integer
+      start_at:
+        type: string
+      total_payment:
+        type: integer
+    type: object
+  camera.CameraType:
+    enum:
+    - inside
+    - outside
+    type: string
+    x-enum-varnames:
+    - Inside
+    - Outside
+  camera.Cameras:
+    properties:
+      id:
+        type: integer
+      name:
+        type: string
+      type:
+        $ref: '#/definitions/camera.CameraType'
+    type: object
+  camera.CapturedEventData:
+    properties:
+      ChannelName:
+        type: string
+      EventComment:
+        type: string
+      EventDescription:
+        type: string
+      EventId:
+        type: string
+      captured_time:
+        type: string
+    type: object
+  modelscar.Car_Model:
+    properties:
+      car_number:
+        type: string
+      duration:
+        type: integer
+      end_time:
+        type: string
+      id:
+        type: integer
+      image_url:
+        type: string
+      park_no:
+        type: string
+      reason:
+        type: string
+      start_time:
+        type: string
+      status:
+        type: string
+      total_payment:
+        type: number
+      user_id:
+        type: string
+    type: object
+  modelscar.CarUpdate:
+    properties:
+      reason:
+        type: string
+    type: object
+  modelsuser.RoleType:
+    enum:
+    - admin
+    - operator
+    - accountant
+    type: string
+    x-enum-varnames:
+    - AdminRole
+    - OperatorRole
+    - AccountantRole
+  modelsuser.User:
+    type: object
+  modelsuser.UserRes:
+    properties:
+      firstname:
+        example: John
+        type: string
+      id:
+        example: 1
+        format: int64
+        type: integer
+      isActive:
+        example: true
+        type: boolean
+      lastname:
+        example: Doe
+        type: string
+      park_no:
+        example: P123
+        type: string
+      role:
+        allOf:
+        - $ref: '#/definitions/modelsuser.RoleType'
+        enum:
+        - admin
+        - operator
+        - accountant
+        example: operator
+      username:
+        example: johndoe
+        type: string
+    type: object
+  operator.ErrorResponse:
+    properties:
+      error:
+        type: string
+      message:
+        type: string
+    type: object
+  operator.GetCarsResponse:
+    properties:
+      cars:
+        items:
+          $ref: '#/definitions/modelscar.Car_Model'
+        type: array
+      limit:
+        type: integer
+      page:
+        type: integer
+      total_count:
+        type: integer
+    type: object
+  resmodel.ErrorResponse:
+    properties:
+      details:
+        type: string
+      error:
+        type: string
+    type: object
+  resmodel.Response:
+    properties:
+      data:
+        $ref: '#/definitions/modelscar.Car_Model'
+      message:
+        type: string
+    type: object
+  usercontrol.LoginInput:
+    properties:
+      parkno:
+        type: string
+      password:
+        type: string
+      username:
+        type: string
+    required:
+    - password
+    - username
+    type: object
+host: 192.168.100.7:3000
+info:
+  contact: {}
+  title: Airline REST API
+paths:
+  /api/v1/accountant:
+    get:
+      consumes:
+      - application/json
+      description: Get list of operators with pagination
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 5
+        description: Number of items per page
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/accountant.GetOperatorResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/accountant.ErrorResponse'
+      summary: Get list of operators
+      tags:
+      - Accountant
+  /api/v1/accountant/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves payments for a specific operator within their login/logout
+        periods
+      parameters:
+      - description: Operator ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/accountant.ResultById'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/accountant.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/accountant.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/accountant.ErrorResponse'
+      summary: Get payments for a specific operator by ID
+      tags:
+      - Accountant
+  /api/v1/auth/login:
+    post:
+      consumes:
+      - application/json
+      description: '{ "username": "Dowran", "password": "12345678", "parkno": "P4"
+        }'
+      parameters:
+      - description: User Login Data
+        in: body
+        name: credentials
+        required: true
+        schema:
+          $ref: '#/definitions/usercontrol.LoginInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 'message: Login successful'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: 'message: Invalid request body'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: 'message: Invalid username or password'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: 'message: Internal Server Error'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Login User
+      tags:
+      - Auth
+  /api/v1/auth/logout:
+    post:
+      description: Ends the session of a logged-in user by deleting the JWT token
+        cookie.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 'message: Logout successful'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: 'message: Internal Server Error'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Logout User
+      tags:
+      - Auth
+  /api/v1/auth/me:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves the current user's username, role, and user ID from the
+        JWT token.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Returns user information
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: 'message: Bad Request - Missing data from middleware'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: 'message: Unauthorized - Invalid token'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: 'message: Internal Server Error - Missing data from middleware'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get current user information
+      tags:
+      - Auth
+  /api/v1/auth/register:
+    post:
+      consumes:
+      - application/json
+      description: 'Creates a new user and stores their hashed password. Example:
+        { "username": "newUser", "password": "password123", "firstname": "John", "lastname":
+        "Doe", "role": "admin" }'
+      parameters:
+      - description: User Registration Data
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/modelsuser.User'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: 'message: User Created'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: 'message: Password must be at least 8 characters long'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: 'message: Internal Server Error'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Register User
+      tags:
+      - Auth
+  /api/v1/camera/getdata:
+    post:
+      consumes:
+      - application/json
+      description: '{"ChannelName": "P41", "EventComment": "BE5084AG"}'
+      parameters:
+      - description: Captured data from the camera
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/camera.CapturedEventData'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Car entry created successfully
+          schema:
+            $ref: '#/definitions/resmodel.Response'
+        "400":
+          description: Bad request, car is already inside
+          schema:
+            $ref: '#/definitions/resmodel.ErrorResponse'
+        "500":
+          description: Internal server error, failed to save data
+          schema:
+            $ref: '#/definitions/resmodel.ErrorResponse'
+      summary: Create a new car entry in the parking lot
+      tags:
+      - Car Entry
+    put:
+      consumes:
+      - application/json
+      description: '{"EventComment": "BE5084AG"}'
+      parameters:
+      - description: Captured data from the camera
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/camera.CapturedEventData'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Car exit updated successfully
+          schema:
+            $ref: '#/definitions/resmodel.Response'
+        "400":
+          description: Bad request, car already exited
+          schema:
+            $ref: '#/definitions/resmodel.ErrorResponse'
+        "404":
+          description: Car not found
+          schema:
+            $ref: '#/definitions/resmodel.ErrorResponse'
+        "500":
+          description: Internal server error, failed to update data
+          schema:
+            $ref: '#/definitions/resmodel.ErrorResponse'
+      summary: Create a car exit record in the parking lot
+      tags:
+      - Car Entry
+  /api/v1/camera/updatecar/{plate}:
+    put:
+      consumes:
+      - application/json
+      description: Updates a car's status and calculates payment and duration based
+        on start and end times.
+      parameters:
+      - description: Car plate number
+        in: path
+        name: plate
+        required: true
+        type: string
+      - description: Car details to update
+        in: body
+        name: car
+        required: true
+        schema:
+          $ref: '#/definitions/modelscar.CarUpdate'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Updated car details
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Car already exited or invalid request
+          schema:
+            $ref: '#/definitions/operator.ErrorResponse'
+        "404":
+          description: Car not found
+          schema:
+            $ref: '#/definitions/operator.ErrorResponse'
+        "500":
+          description: Error parsing time
+          schema:
+            $ref: '#/definitions/operator.ErrorResponse'
+      summary: Update a car by plate number
+      tags:
+      - cars
+  /api/v1/cameras:
+    get:
+      description: Retrieves a list of cameras from the database with pagination
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Number of items per page
+        in: query
+        name: limit
+        type: integer
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/camera.Cameras'
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      summary: Get cameras with pagination
+      tags:
+      - Cameras
+    post:
+      consumes:
+      - application/json
+      description: Creates a new camera in the database with validation for camera
+        type
+      parameters:
+      - description: Camera data
+        in: body
+        name: camera
+        required: true
+        schema:
+          $ref: '#/definitions/camera.Cameras'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/camera.Cameras'
+        "400":
+          description: Invalid camera type
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      summary: Create a new camera
+      tags:
+      - Cameras
+  /api/v1/cameras/{id}:
+    delete:
+      description: Deletes the camera from the database using its unique ID
+      parameters:
+      - description: Camera ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: Camera deleted successfully
+          schema:
+            type: string
+        "404":
+          description: Camera not found
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      summary: Delete a camera by ID
+      tags:
+      - Cameras
+    get:
+      description: Retrieves the camera from the database using its unique ID
+      parameters:
+      - description: Camera ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/camera.Cameras'
+        "404":
+          description: Camera not found
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      summary: Get a camera by ID
+      tags:
+      - Cameras
+    put:
+      consumes:
+      - application/json
+      description: Updates the camera data in the database using its unique ID
+      parameters:
+      - description: Camera ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Updated camera data
+        in: body
+        name: camera
+        required: true
+        schema:
+          $ref: '#/definitions/camera.Cameras'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/camera.Cameras'
+        "400":
+          description: Invalid camera data
+          schema:
+            type: string
+        "404":
+          description: Camera not found
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      summary: Update a camera by ID
+      tags:
+      - Cameras
+  /api/v1/getallcars:
+    get:
+      consumes:
+      - application/json
+      description: Get list of cars with pagination
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 5
+        description: Number of items per page
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/operator.GetCarsResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/operator.ErrorResponse'
+      summary: Get list of cars
+      tags:
+      - cars
+  /api/v1/getcar/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Get a car by ID
+      parameters:
+      - description: Car ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/modelscar.Car_Model'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/operator.ErrorResponse'
+      summary: Get a car by ID
+      tags:
+      - cars
+  /api/v1/searchcar:
+    get:
+      consumes:
+      - application/json
+      description: Search for a car by plate number, parking number, and other optional
+        filters
+      parameters:
+      - description: Car plate number
+        in: query
+        name: car_number
+        type: string
+      - description: Enter time (YYYY-MM-DD)
+        in: query
+        name: enter_time
+        type: string
+      - description: End time (YYYY-MM-DD)
+        in: query
+        name: end_time
+        type: string
+      - description: Parking spot number
+        in: query
+        name: parkno
+        type: string
+      - description: Car status (Inside, Exited)
+        in: query
+        name: status
+        type: string
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 5
+        description: Number of items per page
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/operator.GetCarsResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/operator.ErrorResponse'
+      summary: Search for a car by plate number and optional filters
+      tags:
+      - cars
+  /api/v1/user/operators:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves a list of users who have the role "operator" in descending
+        order by ID
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Number of items per page
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of operators with pagination metadata
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: No operators found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Error retrieving users with operator role
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get all operators
+      tags:
+      - Users
+  /api/v1/userCount:
+    get:
+      description: Retrieves the count of all users and optionally filtered by role
+      produces:
+      - application/json
+      responses: {}
+      summary: Get total number of users and the count of users by role
+      tags:
+      - Users Count
+  /api/v1/users:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves a list of users with pagination support
+      parameters:
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Limit per page
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Can not retrieve users
+          schema:
+            type: string
+      summary: Get all users
+      tags:
+      - Users
+    post:
+      consumes:
+      - application/json
+      description: Creates a new user in the database
+      parameters:
+      - description: User data
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/modelsuser.User'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/modelsuser.User'
+        "400":
+          description: Can not parse
+          schema:
+            type: string
+        "500":
+          description: Can not create
+          schema:
+            type: string
+      summary: Create a new user
+      tags:
+      - Users
+  /api/v1/users/{id}:
+    delete:
+      description: Deletes a user's information from the database using their unique
+        ID
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User deleted successfully
+          schema:
+            type: string
+        "404":
+          description: User not found
+          schema:
+            type: string
+        "500":
+          description: Error deleting user
+          schema:
+            type: string
+      summary: Delete a user by ID
+      tags:
+      - Users
+    get:
+      description: Retrieves a user from the database using their unique ID
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/modelsuser.UserRes'
+      summary: Get user by ID
+      tags:
+      - Users
+    put:
+      description: Updates a user's data (isActive, username, firstname, lastname,
+        etc.) in the database based on the input provided
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: User data to update
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/modelsuser.User'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/modelsuser.UserRes'
+        "400":
+          description: Invalid user data
+          schema:
+            type: string
+        "404":
+          description: User not found
+          schema:
+            type: string
+        "500":
+          description: Error updating user
+          schema:
+            type: string
+      summary: Update user fields based on the provided data
+      tags:
+      - Users
+swagger: "2.0"
