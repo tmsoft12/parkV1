@@ -137,7 +137,7 @@ func GetCar(c *fiber.Ctx) error {
 // @Router /api/v1/camera/updatecar/{plate} [put]
 func UpdateCar(c *fiber.Ctx) error {
 	plate := c.Params("plate")
-	userIDVal := c.Locals("user_id")
+	userIDVal := c.Locals("username")
 
 	var car modelscar.Car_Model
 	if err := database.DB.Where("car_number = ?", plate).Order("id desc").First(&car).Error; err != nil {

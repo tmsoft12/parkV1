@@ -6,7 +6,4 @@
 # Çalışma dosyaları
 *.log
 *.tmp
-
-# Bağımlılık yönetimi klasörleri
-/vendor/
-bin/
+*.docs

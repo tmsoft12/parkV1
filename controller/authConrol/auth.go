@@ -8,6 +8,7 @@ import (
 
 	"park/database"
 	modelsuser "park/models/modelsUser"
+	modeloperator "park/models/operatorModel"
 	"park/util"
 )
 
@@ -116,14 +117,6 @@ func Login(c *fiber.Ctx) error {
 		})
 	}
 
-	if user.Role == modelsuser.OperatorRole {
-		if err := database.DB.Exec("INSERT INTO operators(login_at, operator) VALUES(?, ?)", time.Now(), user.Id).Error; err != nil {
-			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-				"message": "Invalid login time",
-			})
-		}
-	}
-
 	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(loginInput.Password)); err != nil {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 			"message": "Invalid username or password",
@@ -144,6 +137,7 @@ func Login(c *fiber.Ctx) error {
 		SameSite: "Strict",
 		MaxAge:   86400,
 	})
+	util.LoginMath(user.Username, string(user.Role), loginInput.ParkNo)
 	role := user.Role
 	return c.JSON(fiber.Map{
 		"message": "Login successful",
@@ -159,24 +153,21 @@ func Login(c *fiber.Ctx) error {
 // @Failure      500 {object} map[string]string "message: Internal Server Error"
 // @Router      /api/v1/auth/logout [post]
 func Logout(c *fiber.Ctx) error {
-	userIDVal := c.Locals("user_id")
-
-	userID, ok := userIDVal.(string)
+	userIDVal := c.Locals("username")
+	roleVal := c.Locals("role")
+	role, ok := roleVal.(string)
 	if !ok {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"message": "Internal Server Error - Invalid user ID type",
+			"message": "Internal Server Error - Invalid user role type",
 		})
 	}
-
-	if err := database.DB.Exec(`WITH opt AS ( SELECT id 
-  FROM operators 
-  WHERE operator = ?  ORDER BY login_at DESC LIMIT 1 ) UPDATE operators 
-SET logout_at = ? WHERE id = (SELECT id FROM opt);`, userID, time.Now()).Error; err != nil {
+	Username, ok := userIDVal.(string)
+	if !ok {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"message": "Internal Server Error - Could not fetch operator",
+			"message": "Internal Server Error - Invalid user  type",
 		})
 	}
-
+	util.LoginOut(Username, role)
 	c.Cookie(&fiber.Cookie{
 		Name:     "jwt",
 		Value:    "",
@@ -185,8 +176,12 @@ SET logout_at = ? WHERE id = (SELECT id FROM opt);`, userID, time.Now()).Error; 
 		Expires:  time.Now().Add(-time.Hour),
 		MaxAge:   -1,
 	})
+	var count modeloperator.Operator
+	if err := database.DB.Where("operator = ?", Username).Find(&count).Error; err != nil {
+		return c.JSON("errr")
+	}
 
-	return c.JSON(fiber.Map{"message": "Logout successful"})
+	return c.JSON(fiber.Map{"message": "Logout successful", "data": count})
 }
 
 // @Summary      Get current user information

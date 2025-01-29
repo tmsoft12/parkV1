@@ -157,8 +157,8 @@ paths:
     get:
       consumes:
       - application/json
-      description: Fetch cars that are within the specified time range and calculate
-        the total payment.
+      description: Fetch cars that are within the specified time range. 2025-01-29
+        13:07:31 2025-01-29 14:09:19
       parameters:
       - description: Start Time
         example: '"2025-01-29 10:13:51"'
@@ -174,10 +174,11 @@ paths:
       - application/json
       responses:
         "200":
-          description: List of cars and total payment
+          description: List of cars
           schema:
-            additionalProperties: true
-            type: object
+            items:
+              $ref: '#/definitions/modelscar.Car_Model'
+            type: array
       summary: Calculate cars based on start and end time
       tags:
       - Accountant

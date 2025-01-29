@@ -1,12 +1,10 @@
 package modeloperator
 
-import (
-	"time"
-)
-
 type Operator struct {
-	ID       int64     `json:"id" gorm:"primarykey;autoIncrement"`
-	LoginAt  time.Time `json:"login_at"`
-	LogoutAt time.Time `json:"logout_at"`
-	Operator int       `json:"operator_id"`
+	ID       int64  `json:"id"`
+	Park     string `json:"park"`
+	LoginAt  string `json:"login_at"`
+	LogoutAt string `json:"logout_at"`
+	Operator string `json:"operator"`
+	Money    int    `json:"money"`
 }

@@ -17,7 +17,7 @@ const docTemplate = `{
     "paths": {
         "/api/v1/accountant/calculateMoney": {
             "get": {
-                "description": "Fetch cars that are within the specified time range and calculate the total payment.",
+                "description": "Fetch cars that are within the specified time range. 2025-01-29 13:07:31 2025-01-29 14:09:19",
                 "consumes": [
                     "application/json"
                 ],
@@ -46,10 +46,12 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "List of cars and total payment",
+                        "description": "List of cars",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/modelscar.Car_Model"
+                            }
                         }
                     }
                 }
