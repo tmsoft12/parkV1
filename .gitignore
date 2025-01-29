@@ -1,2 +1,12 @@
-/tmp
-go.sum
+# Derlenmiş binary dosyaları
+*.exe
+*.out
+*.o
+
+# Çalışma dosyaları
+*.log
+*.tmp
+
+# Bağımlılık yönetimi klasörleri
+/vendor/
+bin/
