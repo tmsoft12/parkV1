@@ -80,7 +80,7 @@ func CreatePDF(c *fiber.Ctx) error {
 	pdf.OutputFileAndClose(pdfFilePath)
 
 	c.Set("Content-Type", "application/pdf")
-	c.Set("Content-Disposition", "attachment; filename=output.pdf")
+	c.Set("Content-Disposition", "attachment; filename=./pdf/output.pdf")
 	c.SendFile(pdfFilePath)
 
 	if err := pdf.Output(c); err != nil {

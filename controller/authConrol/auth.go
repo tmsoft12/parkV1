@@ -176,12 +176,15 @@ func Logout(c *fiber.Ctx) error {
 		Expires:  time.Now().Add(-time.Hour),
 		MaxAge:   -1,
 	})
-	var count modeloperator.Operator
-	if err := database.DB.Where("operator = ?", Username).Find(&count).Error; err != nil {
-		return c.JSON("errr")
+	var lastLogin modeloperator.Operator
+	if err := database.DB.Where("operator = ?", Username).Order("id  DESC").First(&lastLogin).Error; err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"message": "Internal Server Error - Failed to retrieve last login info",
+		})
 	}
 
-	return c.JSON(fiber.Map{"message": "Logout successful", "data": count})
+	util.CalculateTotalPayment(Username, lastLogin.LoginAt, lastLogin.LogoutAt)
+	return c.JSON(fiber.Map{"message": "Logout successful"})
 }
 
 // @Summary      Get current user information

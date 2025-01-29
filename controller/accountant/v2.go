@@ -23,7 +23,7 @@ import (
 func CalculateMoney(c *fiber.Ctx) error {
 	start := c.Query("start")
 	end := c.Query("end")
-
+	user := c.Locals("username")
 	var cars []modelscar.Car_Model
 	query := database.DB
 
@@ -44,7 +44,7 @@ func CalculateMoney(c *fiber.Ctx) error {
 		query = query.Where("start_time >= ? AND end_time <= ?", startTimeStr, endTimeStr)
 	}
 
-	if err := query.Order("id DESC").Find(&cars).Error; err != nil {
+	if err := query.Where("user_id = ?", user).Order("id DESC").Find(&cars).Error; err != nil {
 		fmt.Println("Database error:", err)
 		return c.Status(500).JSON(fiber.Map{"error": "Failed to fetch cars"})
 	}
@@ -53,6 +53,7 @@ func CalculateMoney(c *fiber.Ctx) error {
 	for _, car := range cars {
 		totalPayment += car.Total_payment
 	}
+	fmt.Println(user)
 	return c.JSON(fiber.Map{
 		"cars":          cars,
 		"total_payment": totalPayment,
