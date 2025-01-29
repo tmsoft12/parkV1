@@ -30,6 +30,21 @@ definitions:
       captured_time:
         type: string
     type: object
+  modeloperator.Operator:
+    properties:
+      id:
+        type: integer
+      login_at:
+        type: string
+      logout_at:
+        type: string
+      money:
+        type: integer
+      operator:
+        type: string
+      park:
+        type: string
+    type: object
   modelscar.Car_Model:
     properties:
       car_number:
@@ -180,6 +195,38 @@ paths:
               $ref: '#/definitions/modelscar.Car_Model'
             type: array
       summary: Calculate cars based on start and end time
+      tags:
+      - Accountant
+  /api/v1/accountant/operators:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a list of operators with pagination support
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Limit per page
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/modeloperator.Operator'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Get all operators with pagination
       tags:
       - Accountant
   /api/v1/auth/login:

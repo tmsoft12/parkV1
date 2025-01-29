@@ -49,6 +49,54 @@
                 }
             }
         },
+        "/api/v1/accountant/operators": {
+            "get": {
+                "description": "Retrieve a list of operators with pagination support",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Accountant"
+                ],
+                "summary": "Get all operators with pagination",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "default": 1,
+                        "description": "Page number",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 10,
+                        "description": "Limit per page",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/modeloperator.Operator"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/auth/login": {
             "post": {
                 "description": "{ \"username\": \"Dowran\", \"password\": \"12345678\", \"parkno\": \"P4\" }",
@@ -1099,6 +1147,29 @@
                     "type": "string"
                 },
                 "captured_time": {
+                    "type": "string"
+                }
+            }
+        },
+        "modeloperator.Operator": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "login_at": {
+                    "type": "string"
+                },
+                "logout_at": {
+                    "type": "string"
+                },
+                "money": {
+                    "type": "integer"
+                },
+                "operator": {
+                    "type": "string"
+                },
+                "park": {
                     "type": "string"
                 }
             }

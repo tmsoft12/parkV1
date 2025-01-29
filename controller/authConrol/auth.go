@@ -167,7 +167,10 @@ func Logout(c *fiber.Ctx) error {
 			"message": "Internal Server Error - Invalid user  type",
 		})
 	}
-	util.LoginOut(Username, role)
+	if role == string(modelsuser.OperatorRole) {
+		util.LoginOut(Username, role)
+	}
+
 	c.Cookie(&fiber.Cookie{
 		Name:     "jwt",
 		Value:    "",
@@ -176,14 +179,18 @@ func Logout(c *fiber.Ctx) error {
 		Expires:  time.Now().Add(-time.Hour),
 		MaxAge:   -1,
 	})
-	var lastLogin modeloperator.Operator
-	if err := database.DB.Where("operator = ?", Username).Order("id  DESC").First(&lastLogin).Error; err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"message": "Internal Server Error - Failed to retrieve last login info",
-		})
-	}
 
-	util.CalculateTotalPayment(Username, lastLogin.LoginAt, lastLogin.LogoutAt)
+	if role == string(modelsuser.OperatorRole) {
+		var lastLogin modeloperator.Operator
+		if err := database.DB.Where("operator = ?", Username).Order("id  DESC").First(&lastLogin).Error; err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"message": "Internal Server Error - Failed to retrieve last login info",
+			})
+		}
+
+		util.CalculateTotalPayment(Username, lastLogin.LoginAt, lastLogin.LogoutAt)
+
+	}
 	return c.JSON(fiber.Map{"message": "Logout successful"})
 }
 

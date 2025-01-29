@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"park/database"
 	modelscar "park/models/modelsCar"
+	modeloperator "park/models/operatorModel"
 
 	"time"
 
@@ -57,5 +58,46 @@ func CalculateMoney(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{
 		"cars":          cars,
 		"total_payment": totalPayment,
+	})
+}
+
+// @Summary Get all operators with pagination
+// @Description Retrieve a list of operators with pagination support
+// @Tags Accountant
+// @Accept  json
+// @Produce  json
+// @Param page query int false "Page number" default(1)
+// @Param limit query int false "Limit per page" default(10)
+// @Success 200 {object} []modeloperator.Operator
+// @Failure 500 {string} string "Internal Server Error"
+// @Router /api/v1/accountant/operators [get]
+func GetOperators(c *fiber.Ctx) error {
+	page := c.Query("page", "1")
+	limit := c.Query("limit", "10")
+
+	pageNum := 1
+	limitNum := 10
+	fmt.Sscanf(page, "%d", &pageNum)
+	fmt.Sscanf(limit, "%d", &limitNum)
+
+	var operators []modeloperator.Operator
+	var totalRecords int64
+
+	database.DB.Model(&modeloperator.Operator{}).Count(&totalRecords)
+
+	offset := (pageNum - 1) * limitNum
+	database.DB.Offset(offset).Limit(limitNum).Find(&operators)
+
+	totalPages := (totalRecords + int64(limitNum) - 1) / int64(limitNum)
+	hasNext := pageNum < int(totalPages)
+	hasPrev := pageNum > 1
+
+	return c.JSON(fiber.Map{
+		"page":       pageNum,
+		"limit":      limitNum,
+		"totalPages": totalPages,
+		"hasNext":    hasNext,
+		"hasPrev":    hasPrev,
+		"data":       operators,
 	})
 }
