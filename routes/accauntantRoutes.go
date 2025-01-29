@@ -8,6 +8,5 @@ import (
 
 func AccountantRoutes(app *fiber.App) {
 	act := app.Group("/api/v1/accountant")
-	act.Get("/", accountant.GetOperators)
-	act.Get("/:id", accountant.GetUserByIdPayments)
+	act.Get("/calculateMoney", accountant.CalculateMoney)
 }

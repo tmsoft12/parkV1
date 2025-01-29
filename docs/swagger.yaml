@@ -1,53 +1,5 @@
 basePath: /
 definitions:
-  accountant.ErrorResponse:
-    properties:
-      error:
-        type: string
-      message:
-        type: string
-    type: object
-  accountant.GetOperatorResponse:
-    properties:
-      has_next:
-        type: boolean
-      has_prev:
-        type: boolean
-      limit:
-        type: integer
-      operators:
-        items:
-          $ref: '#/definitions/accountant.Operator'
-        type: array
-      page:
-        type: integer
-      total_count:
-        type: integer
-    type: object
-  accountant.Operator:
-    properties:
-      is_active:
-        type: boolean
-      park_no:
-        type: string
-      total_payment:
-        type: number
-      user_id:
-        type: integer
-      username:
-        type: string
-    type: object
-  accountant.ResultById:
-    properties:
-      end_at:
-        type: string
-      opertor_id:
-        type: integer
-      start_at:
-        type: string
-      total_payment:
-        type: integer
-    type: object
   camera.CameraType:
     enum:
     - inside
@@ -201,70 +153,32 @@ info:
   contact: {}
   title: Airline REST API
 paths:
-  /api/v1/accountant:
+  /api/v1/accountant/calculateMoney:
     get:
       consumes:
       - application/json
-      description: Get list of operators with pagination
+      description: Fetch cars that are within the specified time range and calculate
+        the total payment.
       parameters:
-      - default: 1
-        description: Page number
+      - description: Start Time
+        example: '"2025-01-29 10:13:51"'
         in: query
-        name: page
-        type: integer
-      - default: 5
-        description: Number of items per page
+        name: start
+        type: string
+      - description: End Time
+        example: '"2025-01-29 12:15:10"'
         in: query
-        name: limit
-        type: integer
+        name: end
+        type: string
       produces:
       - application/json
       responses:
         "200":
-          description: OK
+          description: List of cars and total payment
           schema:
-            $ref: '#/definitions/accountant.GetOperatorResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/accountant.ErrorResponse'
-      summary: Get list of operators
-      tags:
-      - Accountant
-  /api/v1/accountant/{id}:
-    get:
-      consumes:
-      - application/json
-      description: Retrieves payments for a specific operator within their login/logout
-        periods
-      parameters:
-      - description: Operator ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            items:
-              $ref: '#/definitions/accountant.ResultById'
-            type: array
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/accountant.ErrorResponse'
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/accountant.ErrorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/accountant.ErrorResponse'
-      summary: Get payments for a specific operator by ID
+            additionalProperties: true
+            type: object
+      summary: Calculate cars based on start and end time
       tags:
       - Accountant
   /api/v1/auth/login:

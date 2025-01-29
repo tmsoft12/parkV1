@@ -19,6 +19,7 @@ const (
 	statusInside    = "Inside"
 	statusExited    = "Exited"
 	statusPending   = "Pending"
+	statusUnpaid    = "Unpaid"
 	timeFormat      = "2006-01-02 15:04:05"
 	defaultImageURL = "testPhoto.jpg"
 )
@@ -105,11 +106,11 @@ func CreateCarExit(c *fiber.Ctx) error {
 		})
 	}
 
-	if carData.Status == statusPending {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"message": "Car already Pending",
-		})
-	}
+	// if carData.Status == statusPending {
+	// 	return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+	// 		"message": "Car already Pending",
+	// 	})
+	// }
 	startTimeStr := carData.Start_time
 	endTimeStr := time.Now().Format(timeFormat)
 	startTime, _ := time.Parse(timeFormat, startTimeStr)
@@ -123,7 +124,6 @@ func CreateCarExit(c *fiber.Ctx) error {
 	carData.Reason = "Garasylyar"
 
 	if minutes <= 360 {
-
 		carData.Total_payment = 2
 	} else if minutes <= 1440 {
 

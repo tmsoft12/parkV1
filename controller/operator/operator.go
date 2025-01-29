@@ -154,8 +154,8 @@ func UpdateCar(c *fiber.Ctx) error {
 	updatedCar.Status = statusExited
 	if updatedCar.Reason == "" {
 		updatedCar.Reason = "Toleg edildi"
+
 	}
-	updatedCar.Reason = "unpaid"
 	car.Reason = updatedCar.Reason
 	updatedCar.End_time = car.End_time
 	userID, ok := userIDVal.(string)
