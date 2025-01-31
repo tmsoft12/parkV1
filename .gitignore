@@ -3,7 +3,10 @@
 *.out
 *.o
 
-# Çalışma dosyaları
 *.log
 *.tmp
 *.docs
+*.pdf
+
+/tmp
+/docs
