@@ -106,11 +106,12 @@ func CreateCarExit(c *fiber.Ctx) error {
 		})
 	}
 
-	// if carData.Status == statusPending {
-	// 	return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-	// 		"message": "Car already Pending",
-	// 	})
-	// }
+	if carData.Status == statusExited {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "Car already Exited",
+		})
+	}
+
 	startTimeStr := carData.Start_time
 	endTimeStr := time.Now().Format(timeFormat)
 	startTime, _ := time.Parse(timeFormat, startTimeStr)

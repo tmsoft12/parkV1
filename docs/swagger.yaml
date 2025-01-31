@@ -130,11 +130,15 @@ definitions:
         items:
           $ref: '#/definitions/modelscar.Car_Model'
         type: array
+      hasNext:
+        type: boolean
+      hasPrev:
+        type: boolean
       limit:
         type: integer
       page:
         type: integer
-      total_count:
+      totalPages:
         type: integer
     type: object
   resmodel.ErrorResponse:
@@ -673,26 +677,26 @@ paths:
     get:
       consumes:
       - application/json
-      description: Search for a car by plate number, parking number, and other optional
-        filters
+      description: Retrieve a paginated list of cars with optional filtering by car
+        number, enter time, end time, park number, and status.
       parameters:
-      - description: Car plate number
+      - description: Filter by car plate number (partial match allowed)
         in: query
         name: car_number
         type: string
-      - description: Enter time (YYYY-MM-DD)
+      - description: Filter by enter time (YYYY-MM-DD)
         in: query
         name: enter_time
         type: string
-      - description: End time (YYYY-MM-DD)
+      - description: Filter by end time (YYYY-MM-DD)
         in: query
         name: end_time
         type: string
-      - description: Parking spot number
+      - description: Filter by parking spot number
         in: query
         name: parkno
         type: string
-      - description: Car status (Inside, Exited)
+      - description: Filter by car status (Inside, Exited)
         in: query
         name: status
         type: string
@@ -717,7 +721,7 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/operator.ErrorResponse'
-      summary: Search for a car by plate number and optional filters
+      summary: Search for cars
       tags:
       - cars
   /api/v1/user/operators:

@@ -10,7 +10,7 @@ import (
 func Init(app *fiber.App) {
 	cars := app.Group("/api/v1")
 	cars.Get("/getallcars", middleware.Auth, operator.GetCars)
-	cars.Get("/getcar/:id", operator.GetCar)
-	cars.Get("/searchcar", operator.SearchCar)
+	cars.Get("/getcar/:id", middleware.Auth, operator.GetCar)
+	cars.Get("/searchcar", middleware.Auth, operator.SearchCar)
 
 }

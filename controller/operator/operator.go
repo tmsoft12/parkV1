@@ -15,17 +15,6 @@ import (
 
 const statusExited = "Exited"
 
-type GetCarsResponse struct {
-	Cars       []modelscar.Car_Model `json:"cars"`
-	Page       int                   `json:"page"`
-	Limit      int                   `json:"limit"`
-	TotalCount int64                 `json:"total_count"`
-}
-
-type ErrorResponse struct {
-	Message string `json:"message"`
-	Error   string `json:"error"`
-}
 type UpdateCarResponse struct {
 	Message string              `json:"message"`
 	Car     modelscar.Car_Model `json:"car"`
@@ -140,7 +129,7 @@ func UpdateCar(c *fiber.Ctx) error {
 	userIDVal := c.Locals("username")
 
 	var car modelscar.Car_Model
-	if err := database.DB.Where("car_number = ?", plate).Order("id desc").First(&car).Error; err != nil {
+	if err := database.DB.Order("id desc").Where("car_number = ?", plate).First(&car).Error; err != nil {
 		return c.Status(404).JSON(fiber.Map{"message": "Car not found", "error": err.Error()})
 	}
 	if car.Status == statusExited {
@@ -181,16 +170,16 @@ func UpdateCar(c *fiber.Ctx) error {
 }
 
 // SearchCar godoc
-// @Summary Search for a car by plate number and optional filters
-// @Description Search for a car by plate number, parking number, and other optional filters
+// @Summary Search for cars
+// @Description Retrieve a paginated list of cars with optional filtering by car number, enter time, end time, park number, and status.
 // @Tags cars
-// @Accept  json
-// @Produce  json
-// @Param car_number query string false "Car plate number"
-// @Param enter_time query string false "Enter time (YYYY-MM-DD)"
-// @Param end_time query string false "End time (YYYY-MM-DD)"
-// @Param parkno query string false "Parking spot number"
-// @Param status query string false "Car status (Inside, Exited)"
+// @Accept json
+// @Produce json
+// @Param car_number query string false "Filter by car plate number (partial match allowed)"
+// @Param enter_time query string false "Filter by enter time (YYYY-MM-DD)"
+// @Param end_time query string false "Filter by end time (YYYY-MM-DD)"
+// @Param parkno query string false "Filter by parking spot number"
+// @Param status query string false "Filter by car status (Inside, Exited)"
 // @Param page query int false "Page number" default(1)
 // @Param limit query int false "Number of items per page" default(5)
 // @Success 200 {object} GetCarsResponse
@@ -203,25 +192,23 @@ func SearchCar(c *fiber.Ctx) error {
 	carNumber := c.Query("car_number")
 	enterTime := c.Query("enter_time")
 	endTime := c.Query("end_time")
-	parkNo := c.Query("parkno")
+	parkNo := c.Locals("parkno")
 	status := c.Query("status")
 	pageStr := c.Query("page", "1")
 	limitStr := c.Query("limit", "5")
 
+	// Sayfa numarası ve limit değerlerini çevirme
 	page, err := strconv.Atoi(pageStr)
 	if err != nil || page < 1 {
-		return c.Status(400).JSON(fiber.Map{
-			"message": "Invalid page number",
-		})
+		return c.Status(400).JSON(fiber.Map{"message": "Invalid page number"})
 	}
 
 	limit, err := strconv.Atoi(limitStr)
 	if err != nil || limit < 1 {
-		return c.Status(400).JSON(fiber.Map{
-			"message": "Invalid limit number",
-		})
+		return c.Status(400).JSON(fiber.Map{"message": "Invalid limit number"})
 	}
 
+	// Sorgu oluşturma
 	query := database.DB.Model(&modelscar.Car_Model{})
 
 	if carNumber != "" {
@@ -229,17 +216,13 @@ func SearchCar(c *fiber.Ctx) error {
 	}
 	if enterTime != "" {
 		if _, err := time.Parse("2006-01-02", enterTime); err != nil {
-			return c.Status(400).JSON(fiber.Map{
-				"message": "Invalid enter_time format. Use YYYY-MM-DD.",
-			})
+			return c.Status(400).JSON(fiber.Map{"message": "Invalid enter_time format. Use YYYY-MM-DD."})
 		}
 		query = query.Where("DATE(start_time) = ?", enterTime)
 	}
 	if endTime != "" {
 		if _, err := time.Parse("2006-01-02", endTime); err != nil {
-			return c.Status(400).JSON(fiber.Map{
-				"message": "Invalid end_time format. Use YYYY-MM-DD.",
-			})
+			return c.Status(400).JSON(fiber.Map{"message": "Invalid end_time format. Use YYYY-MM-DD."})
 		}
 		query = query.Where("DATE(end_time) = ?", endTime)
 	}
@@ -250,25 +233,45 @@ func SearchCar(c *fiber.Ctx) error {
 		query = query.Where("status = ?", status)
 	}
 
+	// Toplam kayıt sayısını al
 	if err := query.Count(&totalCount).Error; err != nil {
-		return c.Status(400).JSON(fiber.Map{
-			"message": "Error counting cars",
-			"error":   err.Error(),
-		})
+		return c.Status(400).JSON(fiber.Map{"message": "Error counting cars", "error": err.Error()})
 	}
 
+	// Sayfalama hesaplamaları
+	totalPages := int(math.Ceil(float64(totalCount) / float64(limit)))
+	hasNext := page < totalPages
+	hasPrev := page > 1
 	offset := (page - 1) * limit
+
+	// Verileri getir
 	if err := query.Order("id desc").Limit(limit).Offset(offset).Find(&cars).Error; err != nil {
-		return c.Status(400).JSON(fiber.Map{
-			"message": "Error retrieving cars",
-			"error":   err.Error(),
-		})
+		return c.Status(400).JSON(fiber.Map{"message": "Error retrieving cars", "error": err.Error()})
 	}
 
+	// JSON formatında yanıt döndür
 	return c.Status(200).JSON(GetCarsResponse{
 		Cars:       cars,
 		Page:       page,
 		Limit:      limit,
-		TotalCount: totalCount,
+		TotalPages: totalPages,
+		HasNext:    hasNext,
+		HasPrev:    hasPrev,
 	})
+}
+
+// GetCarsResponse Struct
+type GetCarsResponse struct {
+	Cars       []modelscar.Car_Model `json:"cars"`
+	Page       int                   `json:"page"`
+	Limit      int                   `json:"limit"`
+	TotalPages int                   `json:"totalPages"`
+	HasNext    bool                  `json:"hasNext"`
+	HasPrev    bool                  `json:"hasPrev"`
+}
+
+// ErrorResponse Struct
+type ErrorResponse struct {
+	Message string `json:"message"`
+	Error   string `json:"error,omitempty"`
 }

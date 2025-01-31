@@ -762,7 +762,7 @@ const docTemplate = `{
         },
         "/api/v1/searchcar": {
             "get": {
-                "description": "Search for a car by plate number, parking number, and other optional filters",
+                "description": "Retrieve a paginated list of cars with optional filtering by car number, enter time, end time, park number, and status.",
                 "consumes": [
                     "application/json"
                 ],
@@ -772,35 +772,35 @@ const docTemplate = `{
                 "tags": [
                     "cars"
                 ],
-                "summary": "Search for a car by plate number and optional filters",
+                "summary": "Search for cars",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Car plate number",
+                        "description": "Filter by car plate number (partial match allowed)",
                         "name": "car_number",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "Enter time (YYYY-MM-DD)",
+                        "description": "Filter by enter time (YYYY-MM-DD)",
                         "name": "enter_time",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "End time (YYYY-MM-DD)",
+                        "description": "Filter by end time (YYYY-MM-DD)",
                         "name": "end_time",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "Parking spot number",
+                        "description": "Filter by parking spot number",
                         "name": "parkno",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "Car status (Inside, Exited)",
+                        "description": "Filter by car status (Inside, Exited)",
                         "name": "status",
                         "in": "query"
                     },
@@ -1307,13 +1307,19 @@ const docTemplate = `{
                         "$ref": "#/definitions/modelscar.Car_Model"
                     }
                 },
+                "hasNext": {
+                    "type": "boolean"
+                },
+                "hasPrev": {
+                    "type": "boolean"
+                },
                 "limit": {
                     "type": "integer"
                 },
                 "page": {
                     "type": "integer"
                 },
-                "total_count": {
+                "totalPages": {
                     "type": "integer"
                 }
             }
