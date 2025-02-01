@@ -2,6 +2,7 @@ package util
 
 import (
 	"fmt"
+	"log"
 	"park/config"
 	"park/database"
 	modelscar "park/models/modelsCar"
@@ -30,7 +31,7 @@ func LoginMath(username string, role string, park string) error {
 }
 
 func LoginOut(username string, role string) error {
-	now := time.Now().Format(config.TimeFormat)
+	now := time.Now().Add(time.Minute).Format(config.TimeFormat)
 
 	if role == string(modelsuser.OperatorRole) {
 		var lastLogin modeloperator.Operator
@@ -39,7 +40,6 @@ func LoginOut(username string, role string) error {
 			return err
 		}
 		lastLogin.LogoutAt = now
-		lastLogin.Money = 0
 		if err := database.DB.Save(&lastLogin).Error; err != nil {
 			return err
 		}
@@ -48,43 +48,51 @@ func LoginOut(username string, role string) error {
 	return nil
 }
 
-func CalculateTotalPayment(user string, start string, end string) (float64, []modelscar.Car_Model, error) {
-	var cars []modelscar.Car_Model
-	query := database.DB
+func CalculateV2(username string, role string) error {
+	now := time.Now().Format(config.TimeFormat)
 
-	if err := query.Where("user_id = ?", user).Order("id DESC").Find(&cars).Error; err != nil {
-		return 0, nil, fmt.Errorf("failed to fetch cars: %v", err)
+	var calculations []modelscar.Car_Model
+	var totalPayment float64
+
+	if role == string(modelsuser.OperatorRole) {
+		if err := database.DB.Where("user_id = ? AND pay_status = true", username).Find(&calculations).Error; err != nil {
+			log.Println("Error fetching car models for user:", username, "Error:", err)
+			return err
+		}
+
+		if len(calculations) == 0 {
+			return fmt.Errorf("no records found for user %s", username)
+		}
+
+		for _, car := range calculations {
+			totalPayment += car.Total_payment
+		}
+
+		if err := database.DB.Model(&modelscar.Car_Model{}).
+			Where("user_id = ? AND pay_status = true", username).
+			Update("pay_status", false).Error; err != nil {
+			log.Println("Failed to update paystatus for user:", username, "Error:", err)
+			return err
+		}
+
+		var operator modeloperator.Operator
+		if err := database.DB.Where("operator = ?", username).Order("id DESC").First(&operator).Error; err != nil {
+			log.Println("Operator not found for user:", username, "Error:", err)
+			return fmt.Errorf("operator not found for user %s", username)
+		}
+
+		if err := database.DB.Model(&operator).
+			Update("money", totalPayment).Error; err != nil {
+			log.Println("Failed to update operator money for user:", username, "Error:", err)
+			return err
+		}
+
+		operator.LogoutAt = now
+		if err := database.DB.Save(&operator).Error; err != nil {
+			log.Println("Failed to update operator logout time for user:", username, "Error:", err)
+			return err
+		}
 	}
 
-	// Tarih formatını düzgün bir şekilde PostgreSQL ile uyumlu hale getirmek
-	startTime, err := time.Parse("2006-01-02 15:04:05", start)
-	if err != nil {
-		return 0, nil, fmt.Errorf("invalid start time format")
-	}
-
-	endTime, err := time.Parse("2006-01-02 15:04:05", end)
-	if err != nil {
-		return 0, nil, fmt.Errorf("invalid end time format")
-	}
-
-	// PostgreSQL ile uyumlu formatta sorgu yazmak
-	if err := query.Where("user_id = ? AND start_time >= ? AND end_time <= ?", user, startTime.Format("2006-01-02 15:04:05"), endTime.Format("2006-01-02 15:04:05")).Find(&cars).Error; err != nil {
-		return 0, nil, fmt.Errorf("failed to fetch cars: %v", err)
-	}
-
-	totalPayment := 0.0
-	for _, car := range cars {
-		totalPayment += car.Total_payment
-	}
-
-	var money modeloperator.Operator
-	if err := database.DB.Where("operator = ?", user).Order("id DESC").First(&money).Error; err != nil {
-		return 0, nil, fmt.Errorf("operator record not found for user %s", user)
-	}
-
-	if err := database.DB.Model(&money).Update("money", int(totalPayment)).Error; err != nil {
-		return 0, nil, fmt.Errorf("failed to update total payment in database: %v", err)
-	}
-
-	return totalPayment, cars, nil
+	return nil
 }

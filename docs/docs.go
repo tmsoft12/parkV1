@@ -1211,6 +1211,9 @@ const docTemplate = `{
                 "park_no": {
                     "type": "string"
                 },
+                "paystatus": {
+                    "type": "boolean"
+                },
                 "reason": {
                     "type": "string"
                 },

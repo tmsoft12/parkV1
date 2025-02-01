@@ -8,7 +8,6 @@ import (
 
 	"park/database"
 	modelsuser "park/models/modelsUser"
-	modeloperator "park/models/operatorModel"
 	"park/util"
 )
 
@@ -168,7 +167,7 @@ func Logout(c *fiber.Ctx) error {
 		})
 	}
 	if role == string(modelsuser.OperatorRole) {
-		util.LoginOut(Username, role)
+		util.CalculateV2(Username, role)
 	}
 
 	c.Cookie(&fiber.Cookie{
@@ -180,17 +179,6 @@ func Logout(c *fiber.Ctx) error {
 		MaxAge:   -1,
 	})
 
-	if role == string(modelsuser.OperatorRole) {
-		var lastLogin modeloperator.Operator
-		if err := database.DB.Where("operator = ?", Username).Order("id  DESC").First(&lastLogin).Error; err != nil {
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"message": "Internal Server Error - Failed to retrieve last login info",
-			})
-		}
-
-		util.CalculateTotalPayment(Username, lastLogin.LoginAt, lastLogin.LogoutAt)
-
-	}
 	return c.JSON(fiber.Map{"message": "Logout successful"})
 }
 

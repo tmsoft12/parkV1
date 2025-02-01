@@ -15,6 +15,7 @@ ExecStart=/usr/local/bin/main
 WorkingDirectory=/usr/local/bin
 Restart=always
 User=root
+EnvironmentFile=/usr/local/bin/.env
 
 [Install]
 WantedBy=multi-user.target
@@ -37,6 +38,17 @@ if [ -f /usr/local/bin/main ]; then
     fi
 else
     echo "🔔 No old main file found. Skipping removal..."
+fi
+
+if [ -f .env ]; then
+    echo "📂 Copying .env file to /usr/local/bin..."
+    sudo cp .env /usr/local/bin/.env
+    if [ $? -ne 0 ]; then
+        echo "❌ Failed to copy .env file!"
+        exit 1
+    fi
+else
+    echo "⚠️ No .env file found in the current directory!"
 fi
 
 echo "⚙️ Building the Go file for Linux..."

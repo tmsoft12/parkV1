@@ -59,6 +59,8 @@ definitions:
         type: string
       park_no:
         type: string
+      paystatus:
+        type: boolean
       reason:
         type: string
       start_time:

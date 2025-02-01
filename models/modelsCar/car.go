@@ -12,6 +12,7 @@ type Car_Model struct {
 	ParkNo        string  `json:"park_no"`
 	Duration      int     `json:"duration"`
 	User_id       string  `json:"user_id"`
+	PayStatus     bool    `json:"paystatus"`
 }
 
 type CarUpdate struct {

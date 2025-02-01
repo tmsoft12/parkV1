@@ -54,6 +54,7 @@ func CreateCarEntry(c *fiber.Ctx) error {
 	carData.Start_time = now
 	carData.Image_Url = defaultImageURL
 	carData.Reason = "Girdi"
+	carData.PayStatus = true
 	var existingCar modelscar.Car_Model
 	err := database.DB.Order("id desc").First(&existingCar, "car_number = ? AND status = ?", carData.Car_number, statusInside).Error
 	if err == nil {
