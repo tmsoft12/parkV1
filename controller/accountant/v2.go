@@ -86,7 +86,7 @@ func GetOperators(c *fiber.Ctx) error {
 	database.DB.Model(&modeloperator.Operator{}).Count(&totalRecords)
 
 	offset := (pageNum - 1) * limitNum
-	database.DB.Offset(offset).Limit(limitNum).Find(&operators)
+	database.DB.Order("id DESC").Offset(offset).Limit(limitNum).Find(&operators)
 
 	totalPages := (totalRecords + int64(limitNum) - 1) / int64(limitNum)
 	hasNext := pageNum < int(totalPages)

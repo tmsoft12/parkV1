@@ -49,7 +49,6 @@ func CreateCarEntry(c *fiber.Ctx) error {
 	now := time.Now().Format(timeFormat)
 	carData.ParkNo = capturedData.ChannelName[:2]
 	carData.Car_number = capturedData.EventComment
-	carData.ParkNo = capturedData.ChannelName
 	carData.Status = statusInside
 	carData.Start_time = now
 	carData.Image_Url = defaultImageURL
