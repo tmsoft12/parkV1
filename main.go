@@ -26,7 +26,6 @@ func main() {
 		AllowMethods: "GET, POST, PUT, DELETE",
 	}))
 	app.Get("/swagger/*", swagger.HandlerDefault)
-
 	go operator.HandleMessages()
 	go imagetoplate.WatchDirectory("image", database.DB)
 

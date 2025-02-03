@@ -135,18 +135,25 @@ func UpdateCar(c *fiber.Ctx) error {
 	if car.Status == statusExited {
 		return c.Status(400).JSON("Car already Exited")
 	}
+
 	var updatedCar modelscar.Car_Model
 	if err := c.BodyParser(&updatedCar); err != nil {
 		return c.Status(400).JSON(fiber.Map{"message": "Invalid request", "error": err.Error()})
 	}
 
 	updatedCar.Status = statusExited
+
 	if updatedCar.Reason == "" {
 		updatedCar.Reason = "Toleg edildi"
-
+		updatedCar.Total_payment = car.Total_payment
+	} else {
+		updatedCar.Total_payment = 0
 	}
+
 	car.Reason = updatedCar.Reason
+	car.Total_payment = updatedCar.Total_payment
 	updatedCar.End_time = car.End_time
+
 	userID, ok := userIDVal.(string)
 	if !ok {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
@@ -154,15 +161,24 @@ func UpdateCar(c *fiber.Ctx) error {
 		})
 	}
 	updatedCar.User_id = userID
-	if err := database.DB.Model(&car).Updates(updatedCar).Error; err != nil {
+
+	if err := database.DB.Model(&car).Updates(map[string]interface{}{
+		"reason":        updatedCar.Reason,
+		"total_payment": updatedCar.Total_payment,
+		"user_id":       updatedCar.User_id,
+		"status":        updatedCar.Status,
+		"end_time":      updatedCar.End_time,
+	}).Error; err != nil {
 		return c.Status(400).JSON(fiber.Map{"message": "Database update failed", "error": err.Error()})
 	}
+
 	updatedCar.ID = car.ID
 	updatedCar.Car_number = car.Car_number
 	updatedCar.Start_time = car.Start_time
 	updatedCar.ParkNo = car.ParkNo
 	updatedCar.End_time = car.End_time
 	updatedCar.Image_Url = car.Image_Url
+
 	return c.Status(200).JSON(fiber.Map{
 		"message": "Car updated successfully",
 		"car":     updatedCar},
@@ -197,7 +213,6 @@ func SearchCar(c *fiber.Ctx) error {
 	pageStr := c.Query("page", "1")
 	limitStr := c.Query("limit", "5")
 
-	// Sayfa numarası ve limit değerlerini çevirme
 	page, err := strconv.Atoi(pageStr)
 	if err != nil || page < 1 {
 		return c.Status(400).JSON(fiber.Map{"message": "Invalid page number"})
@@ -208,7 +223,6 @@ func SearchCar(c *fiber.Ctx) error {
 		return c.Status(400).JSON(fiber.Map{"message": "Invalid limit number"})
 	}
 
-	// Sorgu oluşturma
 	query := database.DB.Model(&modelscar.Car_Model{})
 
 	if carNumber != "" {
@@ -233,23 +247,19 @@ func SearchCar(c *fiber.Ctx) error {
 		query = query.Where("status = ?", status)
 	}
 
-	// Toplam kayıt sayısını al
 	if err := query.Count(&totalCount).Error; err != nil {
 		return c.Status(400).JSON(fiber.Map{"message": "Error counting cars", "error": err.Error()})
 	}
 
-	// Sayfalama hesaplamaları
 	totalPages := int(math.Ceil(float64(totalCount) / float64(limit)))
 	hasNext := page < totalPages
 	hasPrev := page > 1
 	offset := (page - 1) * limit
 
-	// Verileri getir
 	if err := query.Order("id desc").Limit(limit).Offset(offset).Find(&cars).Error; err != nil {
 		return c.Status(400).JSON(fiber.Map{"message": "Error retrieving cars", "error": err.Error()})
 	}
 
-	// JSON formatında yanıt döndür
 	return c.Status(200).JSON(GetCarsResponse{
 		Cars:       cars,
 		Page:       page,
@@ -260,7 +270,6 @@ func SearchCar(c *fiber.Ctx) error {
 	})
 }
 
-// GetCarsResponse Struct
 type GetCarsResponse struct {
 	Cars       []modelscar.Car_Model `json:"cars"`
 	Page       int                   `json:"page"`
@@ -270,7 +279,6 @@ type GetCarsResponse struct {
 	HasPrev    bool                  `json:"hasPrev"`
 }
 
-// ErrorResponse Struct
 type ErrorResponse struct {
 	Message string `json:"message"`
 	Error   string `json:"error,omitempty"`

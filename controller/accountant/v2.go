@@ -54,7 +54,6 @@ func CalculateMoney(c *fiber.Ctx) error {
 	for _, car := range cars {
 		totalPayment += car.Total_payment
 	}
-	fmt.Println(user)
 	return c.JSON(fiber.Map{
 		"cars":          cars,
 		"total_payment": totalPayment,

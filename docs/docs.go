@@ -105,6 +105,139 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v1/accountant/tarif": {
+            "get": {
+                "description": "Retrieves all tarifs from the database with pagination support.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Tarif"
+                ],
+                "summary": "Get all Tarifs with pagination",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "default": 1,
+                        "description": "Page number",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 10,
+                        "description": "Number of items per page",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of tarifs",
+                        "schema": {
+                            "$ref": "#/definitions/tarifcontrol.PaginatedResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Database error",
+                        "schema": {
+                            "$ref": "#/definitions/resmodel.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Creates a new tarif and saves it to the database.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Tarif"
+                ],
+                "summary": "Create a New Tarif",
+                "parameters": [
+                    {
+                        "description": "Tarif details to be created",
+                        "name": "tarif",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/tarif.Tarif"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Successfully created",
+                        "schema": {
+                            "$ref": "#/definitions/tarif.Tarif"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request data",
+                        "schema": {
+                            "$ref": "#/definitions/resmodel.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Failed to save data to the database",
+                        "schema": {
+                            "$ref": "#/definitions/resmodel.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/accountant/tarif/{id}": {
+            "delete": {
+                "description": "Deletes a tarif by its ID.",
+                "tags": [
+                    "Tarif"
+                ],
+                "summary": "Delete Tarif",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID of the tarif to delete",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Tarif successfully deleted",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid ID format",
+                        "schema": {
+                            "$ref": "#/definitions/resmodel.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Tarif not found",
+                        "schema": {
+                            "$ref": "#/definitions/resmodel.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Database error",
+                        "schema": {
+                            "$ref": "#/definitions/resmodel.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/auth/login": {
             "post": {
                 "description": "{ \"username\": \"Dowran\", \"password\": \"12345678\", \"parkno\": \"P4\" }",
@@ -1187,6 +1320,9 @@ const docTemplate = `{
             "properties": {
                 "reason": {
                     "type": "string"
+                },
+                "total_payment": {
+                    "type": "number"
                 }
             }
         },
@@ -1346,6 +1482,50 @@ const docTemplate = `{
                 },
                 "message": {
                     "type": "string"
+                }
+            }
+        },
+        "tarif.Tarif": {
+            "type": "object",
+            "properties": {
+                "end_time": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "plate": {
+                    "type": "string"
+                },
+                "price": {
+                    "type": "integer"
+                },
+                "start_time": {
+                    "type": "string"
+                }
+            }
+        },
+        "tarifcontrol.PaginatedResponse": {
+            "type": "object",
+            "properties": {
+                "data": {},
+                "hasNext": {
+                    "type": "boolean"
+                },
+                "hasPrev": {
+                    "type": "boolean"
+                },
+                "limit": {
+                    "type": "integer"
+                },
+                "page": {
+                    "type": "integer"
+                },
+                "totalPages": {
+                    "type": "integer"
                 }
             }
         },

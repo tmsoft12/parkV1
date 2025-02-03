@@ -21,7 +21,6 @@ type User struct {
 	ParkNo    *string  `json:"park_no" example:"P123"`
 }
 
-// UserRes defines the response structure for user details
 type UserRes struct {
 	Id        int      `json:"id" example:"1" format:"int64" description:"Unique identifier of the user"`
 	Username  string   `json:"username" example:"johndoe" description:"Username of the user"`

@@ -16,5 +16,6 @@ type Car_Model struct {
 }
 
 type CarUpdate struct {
-	Reason string `json:"reason"`
+	Reason        string  `json:"reason"`
+	Total_payment float64 `json:"total_payment"`
 }

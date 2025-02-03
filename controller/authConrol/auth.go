@@ -154,22 +154,6 @@ func Login(c *fiber.Ctx) error {
 func Logout(c *fiber.Ctx) error {
 	userIDVal := c.Locals("username")
 	roleVal := c.Locals("role")
-	role, ok := roleVal.(string)
-	if !ok {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"message": "Internal Server Error - Invalid user role type",
-		})
-	}
-	Username, ok := userIDVal.(string)
-	if !ok {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"message": "Internal Server Error - Invalid user  type",
-		})
-	}
-	if role == string(modelsuser.OperatorRole) {
-		util.CalculateV2(Username, role)
-	}
-
 	c.Cookie(&fiber.Cookie{
 		Name:     "jwt",
 		Value:    "",
@@ -178,8 +162,37 @@ func Logout(c *fiber.Ctx) error {
 		Expires:  time.Now().Add(-time.Hour),
 		MaxAge:   -1,
 	})
+	role, ok := roleVal.(string)
+	if !ok {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"message": "Internal Server Error - Invalid user role type",
+		})
+	}
 
-	return c.JSON(fiber.Map{"message": "Logout successful"})
+	Username, ok := userIDVal.(string)
+	if !ok {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"message": "Internal Server Error - Invalid user type",
+		})
+	}
+
+	total_payment := 0
+
+	if role == string(modelsuser.OperatorRole) {
+		var err error
+		total_payment, err = util.CalculateV2(Username, role)
+		if err != nil {
+			return c.Status(fiber.StatusOK).JSON(fiber.Map{
+				"message": "Failed to calculate total payment",
+				"error":   err.Error(),
+			})
+		}
+	}
+
+	return c.JSON(fiber.Map{
+		"message":       "Logout successful",
+		"total_payment": total_payment,
+	})
 }
 
 // @Summary      Get current user information

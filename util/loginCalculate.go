@@ -48,7 +48,7 @@ func LoginOut(username string, role string) error {
 	return nil
 }
 
-func CalculateV2(username string, role string) error {
+func CalculateV2(username string, role string) (int, error) {
 	now := time.Now().Format(config.TimeFormat)
 
 	var calculations []modelscar.Car_Model
@@ -57,11 +57,11 @@ func CalculateV2(username string, role string) error {
 	if role == string(modelsuser.OperatorRole) {
 		if err := database.DB.Where("user_id = ? AND pay_status = true", username).Find(&calculations).Error; err != nil {
 			log.Println("Error fetching car models for user:", username, "Error:", err)
-			return err
+			return 0, err
 		}
 
 		if len(calculations) == 0 {
-			return fmt.Errorf("no records found for user %s", username)
+			return 0, fmt.Errorf("no records found for user %s", username)
 		}
 
 		for _, car := range calculations {
@@ -72,27 +72,27 @@ func CalculateV2(username string, role string) error {
 			Where("user_id = ? AND pay_status = true", username).
 			Update("pay_status", false).Error; err != nil {
 			log.Println("Failed to update paystatus for user:", username, "Error:", err)
-			return err
+			return 0, err
 		}
 
 		var operator modeloperator.Operator
 		if err := database.DB.Where("operator = ?", username).Order("id DESC").First(&operator).Error; err != nil {
 			log.Println("Operator not found for user:", username, "Error:", err)
-			return fmt.Errorf("operator not found for user %s", username)
+			return 0, fmt.Errorf("operator not found for user %s", username)
 		}
 
 		if err := database.DB.Model(&operator).
 			Update("money", totalPayment).Error; err != nil {
 			log.Println("Failed to update operator money for user:", username, "Error:", err)
-			return err
+			return 0, err
 		}
 
 		operator.LogoutAt = now
 		if err := database.DB.Save(&operator).Error; err != nil {
 			log.Println("Failed to update operator logout time for user:", username, "Error:", err)
-			return err
+			return 0, err
 		}
 	}
 
-	return nil
+	return int(totalPayment), nil
 }

@@ -76,6 +76,8 @@ definitions:
     properties:
       reason:
         type: string
+      total_payment:
+        type: number
     type: object
   modelsuser.RoleType:
     enum:
@@ -157,6 +159,35 @@ definitions:
       message:
         type: string
     type: object
+  tarif.Tarif:
+    properties:
+      end_time:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      plate:
+        type: string
+      price:
+        type: integer
+      start_time:
+        type: string
+    type: object
+  tarifcontrol.PaginatedResponse:
+    properties:
+      data: {}
+      hasNext:
+        type: boolean
+      hasPrev:
+        type: boolean
+      limit:
+        type: integer
+      page:
+        type: integer
+      totalPages:
+        type: integer
+    type: object
   usercontrol.LoginInput:
     properties:
       parkno:
@@ -235,6 +266,94 @@ paths:
       summary: Get all operators with pagination
       tags:
       - Accountant
+  /api/v1/accountant/tarif:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves all tarifs from the database with pagination support.
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Number of items per page
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of tarifs
+          schema:
+            $ref: '#/definitions/tarifcontrol.PaginatedResponse'
+        "500":
+          description: Database error
+          schema:
+            $ref: '#/definitions/resmodel.ErrorResponse'
+      summary: Get all Tarifs with pagination
+      tags:
+      - Tarif
+    post:
+      consumes:
+      - application/json
+      description: Creates a new tarif and saves it to the database.
+      parameters:
+      - description: Tarif details to be created
+        in: body
+        name: tarif
+        required: true
+        schema:
+          $ref: '#/definitions/tarif.Tarif'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Successfully created
+          schema:
+            $ref: '#/definitions/tarif.Tarif'
+        "400":
+          description: Invalid request data
+          schema:
+            $ref: '#/definitions/resmodel.ErrorResponse'
+        "500":
+          description: Failed to save data to the database
+          schema:
+            $ref: '#/definitions/resmodel.ErrorResponse'
+      summary: Create a New Tarif
+      tags:
+      - Tarif
+  /api/v1/accountant/tarif/{id}:
+    delete:
+      description: Deletes a tarif by its ID.
+      parameters:
+      - description: ID of the tarif to delete
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: Tarif successfully deleted
+          schema:
+            type: string
+        "400":
+          description: Invalid ID format
+          schema:
+            $ref: '#/definitions/resmodel.ErrorResponse'
+        "404":
+          description: Tarif not found
+          schema:
+            $ref: '#/definitions/resmodel.ErrorResponse'
+        "500":
+          description: Database error
+          schema:
+            $ref: '#/definitions/resmodel.ErrorResponse'
+      summary: Delete Tarif
+      tags:
+      - Tarif
   /api/v1/auth/login:
     post:
       consumes:

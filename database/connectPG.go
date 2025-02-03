@@ -7,6 +7,7 @@ import (
 	modelscar "park/models/modelsCar"
 	modelsuser "park/models/modelsUser"
 	modeloperator "park/models/operatorModel"
+	"park/models/tarif"
 
 	"github.com/joho/godotenv"
 	"gorm.io/driver/postgres"
@@ -35,6 +36,7 @@ func ConnectDB() {
 		&modelsuser.User{},
 		&camera.Cameras{},
 		&modeloperator.Operator{},
+		&tarif.Tarif{},
 	)
 	if err != nil {
 		log.Fatal("Failed to migrate models:", err)
