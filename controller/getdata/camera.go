@@ -2,6 +2,7 @@ package getdata
 
 import (
 	"fmt"
+	"log"
 	"math"
 	"os"
 	"time"
@@ -13,6 +14,7 @@ import (
 	"park/database"
 	"park/models/camera"
 	modelscar "park/models/modelsCar"
+	"park/util"
 )
 
 const (
@@ -133,6 +135,14 @@ func CreateCarExit(c *fiber.Ctx) error {
 
 		days := int(math.Ceil(minutes / 1440))
 		carData.Total_payment = float64(3 * days)
+	}
+	if util.IsVIPPlate(capturedData.EventComment) {
+		log.Println("VIP Plate:", capturedData.EventComment)
+		carData.Total_payment = 0
+
+	} else {
+		log.Println("Normal Plate:", capturedData.EventComment)
+
 	}
 	if err := database.DB.Model(&carData).Updates(carData).Error; err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{

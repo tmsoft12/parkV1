@@ -11,6 +11,7 @@ import (
 	"park/database"
 	_ "park/docs"
 	"park/routes"
+	"park/util"
 )
 
 // @title Airline REST API
@@ -18,6 +19,8 @@ import (
 // @BasePath /
 func main() {
 	database.ConnectDB()
+	util.LoadVIPPlates()
+
 	app := fiber.New()
 	app.Use(logger.New())
 	app.Use(cors.New(cors.Config{
