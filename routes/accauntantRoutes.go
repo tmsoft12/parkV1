@@ -15,4 +15,5 @@ func AccountantRoutes(app *fiber.App) {
 	act.Post("/tarif", tarifcontrol.CreateTarif)
 	act.Delete("/tarif/:id", tarifcontrol.DeleteTarif)
 	act.Get("/tarif", tarifcontrol.GetAllTarif)
+	act.Get("/search_car", tarifcontrol.SearchCar)
 }

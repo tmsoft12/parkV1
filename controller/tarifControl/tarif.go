@@ -2,6 +2,7 @@ package tarifcontrol
 
 import (
 	"encoding/json"
+	"math"
 	resmodel "park/controller/getdata/resModel"
 	"park/database"
 	"park/models/tarif"
@@ -136,6 +137,7 @@ type PaginatedResponse struct {
 	TotalPages int         `json:"totalPages"`
 	HasNext    bool        `json:"hasNext"`
 	HasPrev    bool        `json:"hasPrev"`
+	TotalPrice int         `json:"total_price"`
 }
 
 // GetAllTarif godoc
@@ -162,6 +164,7 @@ func GetAllTarif(c *fiber.Ctx) error {
 
 	var tarifs []tarif.Tarif
 	var totalCount int64
+	var totalPrice int
 
 	if err := database.DB.Model(&tarif.Tarif{}).Count(&totalCount).Error; err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(resmodel.ErrorResponse{
@@ -176,7 +179,9 @@ func GetAllTarif(c *fiber.Ctx) error {
 			Details: err.Error(),
 		})
 	}
-
+	for _, tarif := range tarifs {
+		totalPrice += tarif.Price
+	}
 	totalPages := int(totalCount / int64(limit))
 	if totalCount%int64(limit) != 0 {
 		totalPages++
@@ -191,5 +196,65 @@ func GetAllTarif(c *fiber.Ctx) error {
 		TotalPages: totalPages,
 		HasNext:    hasNext,
 		HasPrev:    hasPrev,
+		TotalPrice: totalPrice,
+	})
+}
+
+// SearchCar godoc
+// @Summary Search for cars by plate number
+// @Description Retrieves cars from the database that match the given plate number with pagination.
+// @Tags Tarif
+// @Accept json
+// @Produce json
+// @Param car_number query string false "Car plate number to search for"
+// @Param page query int false "Page number" default(1)
+// @Param limit query int false "Number of items per page" default(5)
+// @Success 200 {object} PaginatedResponse "List of matching cars with pagination"
+// @Router /api/v1/accountant/search_car [get]
+func SearchCar(c *fiber.Ctx) error {
+	var plate []Tarif
+	var totalCount int64
+
+	carNumber := c.Query("car_number")
+	pageStr := c.Query("page", "1")
+	limitStr := c.Query("limit", "5")
+
+	page, err := strconv.Atoi(pageStr)
+	if err != nil || page < 1 {
+		return c.Status(400).JSON(fiber.Map{"message": "Invalid page number"})
+	}
+
+	limit, err := strconv.Atoi(limitStr)
+	if err != nil || limit < 1 {
+		return c.Status(400).JSON(fiber.Map{"message": "Invalid limit number"})
+	}
+
+	query := database.DB.Model(&Tarif{})
+
+	if carNumber != "" {
+		query = query.Where("plate LIKE ?", "%"+carNumber+"%")
+	}
+
+	if err := query.Count(&totalCount).Error; err != nil {
+		return c.Status(400).JSON(fiber.Map{"message": "Error counting cars", "error": err.Error()})
+	}
+
+	totalPages := int(math.Ceil(float64(totalCount) / float64(limit)))
+	hasNext := page < totalPages
+	hasPrev := page > 1
+	offset := (page - 1) * limit
+
+	if err := query.Order("id desc").Limit(limit).Offset(offset).Find(&plate).Error; err != nil {
+		return c.Status(400).JSON(fiber.Map{"message": "Error retrieving cars", "error": err.Error()})
+	}
+
+	return c.Status(200).JSON(PaginatedResponse{
+		Data:       plate,
+		Page:       page,
+		Limit:      limit,
+		TotalPages: totalPages,
+		HasNext:    hasNext,
+		HasPrev:    hasPrev,
+		TotalPrice: 0, // Optional: Modify to sum up total prices if needed
 	})
 }

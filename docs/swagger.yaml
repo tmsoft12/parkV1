@@ -185,6 +185,8 @@ definitions:
         type: integer
       page:
         type: integer
+      total_price:
+        type: integer
       totalPages:
         type: integer
     type: object
@@ -266,6 +268,37 @@ paths:
       summary: Get all operators with pagination
       tags:
       - Accountant
+  /api/v1/accountant/search_car:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves cars from the database that match the given plate number
+        with pagination.
+      parameters:
+      - description: Car plate number to search for
+        in: query
+        name: car_number
+        type: string
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 5
+        description: Number of items per page
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of matching cars with pagination
+          schema:
+            $ref: '#/definitions/tarifcontrol.PaginatedResponse'
+      summary: Search for cars by plate number
+      tags:
+      - Tarif
   /api/v1/accountant/tarif:
     get:
       consumes:

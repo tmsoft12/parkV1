@@ -105,6 +105,51 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v1/accountant/search_car": {
+            "get": {
+                "description": "Retrieves cars from the database that match the given plate number with pagination.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Tarif"
+                ],
+                "summary": "Search for cars by plate number",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Car plate number to search for",
+                        "name": "car_number",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 1,
+                        "description": "Page number",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 5,
+                        "description": "Number of items per page",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of matching cars with pagination",
+                        "schema": {
+                            "$ref": "#/definitions/tarifcontrol.PaginatedResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/accountant/tarif": {
             "get": {
                 "description": "Retrieves all tarifs from the database with pagination support.",
@@ -1525,6 +1570,9 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "totalPages": {
+                    "type": "integer"
+                },
+                "total_price": {
                     "type": "integer"
                 }
             }
