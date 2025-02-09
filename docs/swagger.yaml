@@ -202,7 +202,7 @@ definitions:
     - password
     - username
     type: object
-host: 192.168.100.7:3000
+host: 127.0.0.1:3000
 info:
   contact: {}
   title: Airline REST API
