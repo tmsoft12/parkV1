@@ -24,11 +24,11 @@ func main() {
 	app := fiber.New()
 	app.Use(logger.New())
 	app.Use(cors.New(cors.Config{
-		AllowOrigins: "http://172.16.4.204",
-		// AllowOrigins: "*",
-		AllowCredentials: true,
-		AllowHeaders:     "Origin, Content-Type, Accept",
-		AllowMethods:     "GET, POST, PUT, DELETE",
+		// AllowOrigins: "http://172.16.4.204",
+		AllowOrigins: "*",
+		// AllowCredentials: true,
+		AllowHeaders: "Origin, Content-Type, Accept",
+		AllowMethods: "GET, POST, PUT, DELETE",
 	}))
 	app.Get("/swagger/*", swagger.HandlerDefault)
 	go operator.HandleMessages()
@@ -38,6 +38,7 @@ func main() {
 	routes.InitAdminRoute(app)
 	routes.CameraRoutes(app)
 	routes.AccountantRoutes(app)
+	routes.InitZreport(app)
 	routes.Init(app)
 	app.Listen(":3000")
 }

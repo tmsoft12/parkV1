@@ -250,12 +250,7 @@ func SearchCar(c *fiber.Ctx) error {
 	if err := query.Count(&totalCount).Error; err != nil {
 		return c.Status(400).JSON(fiber.Map{"message": "Error counting cars", "error": err.Error()})
 	}
-	ip := os.Getenv("HOST")
-	port := os.Getenv("PORT")
 
-	for i := range cars {
-		cars[i].Image_Url = fmt.Sprintf("http://%s:%s/plate/%s", ip, port, cars[i].Image_Url)
-	}
 	totalPages := int(math.Ceil(float64(totalCount) / float64(limit)))
 	hasNext := page < totalPages
 	hasPrev := page > 1
@@ -264,7 +259,12 @@ func SearchCar(c *fiber.Ctx) error {
 	if err := query.Order("id desc").Limit(limit).Offset(offset).Find(&cars).Error; err != nil {
 		return c.Status(400).JSON(fiber.Map{"message": "Error retrieving cars", "error": err.Error()})
 	}
+	ip := os.Getenv("HOST")
+	port := os.Getenv("PORT")
 
+	for i := range cars {
+		cars[i].Image_Url = fmt.Sprintf("http://%s:%s/plate/%s", ip, port, cars[i].Image_Url)
+	}
 	return c.Status(200).JSON(GetCarsResponse{
 		Cars:       cars,
 		Page:       page,

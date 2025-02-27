@@ -6,6 +6,7 @@ import (
 	resmodel "park/controller/getdata/resModel"
 	"park/database"
 	"park/models/tarif"
+	"park/util"
 	"strconv"
 	"time"
 
@@ -90,6 +91,7 @@ func CreateTarif(c *fiber.Ctx) error {
 			Details: err.Error(),
 		})
 	}
+	util.LoadVIPPlates()
 	return c.Status(201).JSON(tarif)
 }
 
@@ -126,6 +128,7 @@ func DeleteTarif(c *fiber.Ctx) error {
 			Details: err.Error(),
 		})
 	}
+	util.LoadVIPPlates()
 
 	return c.Status(200).JSON(fiber.Map{"message": "Tarif successfully deleted"})
 }

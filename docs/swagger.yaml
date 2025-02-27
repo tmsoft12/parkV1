@@ -190,6 +190,11 @@ definitions:
       totalPages:
         type: integer
     type: object
+  testz.ZReport:
+    properties:
+      total_payment:
+        type: integer
+    type: object
   usercontrol.LoginInput:
     properties:
       parkno:
@@ -1066,4 +1071,34 @@ paths:
       summary: Update user fields based on the provided data
       tags:
       - Users
+  /zreport:
+    post:
+      consumes:
+      - application/json
+      description: Creates a new Report and saves it to the database.
+      parameters:
+      - description: Tarif details to be created
+        in: body
+        name: tarif
+        required: true
+        schema:
+          $ref: '#/definitions/testz.ZReport'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Successfully created
+          schema:
+            $ref: '#/definitions/testz.ZReport'
+        "400":
+          description: Invalid request data
+          schema:
+            $ref: '#/definitions/resmodel.ErrorResponse'
+        "500":
+          description: Failed to save data to the database
+          schema:
+            $ref: '#/definitions/resmodel.ErrorResponse'
+      summary: Create a New Tarif
+      tags:
+      - Zreport
 swagger: "2.0"

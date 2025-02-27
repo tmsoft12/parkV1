@@ -1289,6 +1289,52 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/zreport": {
+            "post": {
+                "description": "Creates a new Report and saves it to the database.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Zreport"
+                ],
+                "summary": "Create a New Tarif",
+                "parameters": [
+                    {
+                        "description": "Tarif details to be created",
+                        "name": "tarif",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/testz.ZReport"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Successfully created",
+                        "schema": {
+                            "$ref": "#/definitions/testz.ZReport"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request data",
+                        "schema": {
+                            "$ref": "#/definitions/resmodel.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Failed to save data to the database",
+                        "schema": {
+                            "$ref": "#/definitions/resmodel.ErrorResponse"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -1573,6 +1619,14 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "total_price": {
+                    "type": "integer"
+                }
+            }
+        },
+        "testz.ZReport": {
+            "type": "object",
+            "properties": {
+                "total_payment": {
                     "type": "integer"
                 }
             }
