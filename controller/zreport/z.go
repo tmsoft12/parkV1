@@ -1,4 +1,4 @@
-package testz
+package zreport
 
 import (
 	"fmt"
@@ -9,6 +9,7 @@ import (
 type ZReport struct {
 	Total_payment int    `json:"total_payment"`
 	Username      string `json:"username"`
+	PrakNo        string `json:"parkno"`
 }
 
 // CreateTarif godoc
@@ -29,5 +30,6 @@ func GetZdata(c *fiber.Ctx) error {
 	}
 	fmt.Println("payment:", data.Total_payment)
 	fmt.Println("Username:", data.Username)
+	fmt.Println("Parkno:", data.PrakNo)
 	return c.JSON(data)
 }
