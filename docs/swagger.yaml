@@ -145,6 +145,13 @@ definitions:
       totalPages:
         type: integer
     type: object
+  realtime.UpdateRequest:
+    properties:
+      parkno:
+        type: string
+      total_payment:
+        type: integer
+    type: object
   resmodel.ErrorResponse:
     properties:
       details:
@@ -190,11 +197,6 @@ definitions:
       totalPages:
         type: integer
     type: object
-  testz.ZReport:
-    properties:
-      total_payment:
-        type: integer
-    type: object
   usercontrol.LoginInput:
     properties:
       parkno:
@@ -207,7 +209,16 @@ definitions:
     - password
     - username
     type: object
-host: 127.0.0.1:3000
+  zreport.ZReport:
+    properties:
+      parkno:
+        type: string
+      total_payment:
+        type: integer
+      username:
+        type: string
+    type: object
+host: 192.168.100.7:3000
 info:
   contact: {}
   title: Airline REST API
@@ -883,6 +894,42 @@ paths:
       summary: Search for cars
       tags:
       - cars
+  /api/v1/update/count:
+    get:
+      description: Provides real-time updates of parking counts via WebSocket
+      produces:
+      - application/json
+      responses:
+        "101":
+          description: WebSocket upgrade
+      summary: Establish WebSocket connection for parking counts
+    put:
+      consumes:
+      - application/json
+      description: Adds the provided total to the existing count for the specified
+        park number
+      parameters:
+      - description: Total value to add and park number
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/realtime.UpdateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Updated total value and park number
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Error message
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Update the count value for a specific parking number
   /api/v1/user/operators:
     get:
       consumes:
@@ -1082,14 +1129,14 @@ paths:
         name: tarif
         required: true
         schema:
-          $ref: '#/definitions/testz.ZReport'
+          $ref: '#/definitions/zreport.ZReport'
       produces:
       - application/json
       responses:
         "201":
           description: Successfully created
           schema:
-            $ref: '#/definitions/testz.ZReport'
+            $ref: '#/definitions/zreport.ZReport'
         "400":
           description: Invalid request data
           schema:

@@ -1013,6 +1013,59 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v1/update/count": {
+            "get": {
+                "description": "Provides real-time updates of parking counts via WebSocket",
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Establish WebSocket connection for parking counts",
+                "responses": {
+                    "101": {
+                        "description": "WebSocket upgrade"
+                    }
+                }
+            },
+            "put": {
+                "description": "Adds the provided total to the existing count for the specified park number",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Update the count value for a specific parking number",
+                "parameters": [
+                    {
+                        "description": "Total value to add and park number",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/realtime.UpdateRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Updated total value and park number",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Error message",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/user/operators": {
             "get": {
                 "description": "Retrieves a list of users who have the role \"operator\" in descending order by ID",
@@ -1310,7 +1363,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/testz.ZReport"
+                            "$ref": "#/definitions/zreport.ZReport"
                         }
                     }
                 ],
@@ -1318,7 +1371,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Successfully created",
                         "schema": {
-                            "$ref": "#/definitions/testz.ZReport"
+                            "$ref": "#/definitions/zreport.ZReport"
                         }
                     },
                     "400": {
@@ -1554,6 +1607,17 @@ const docTemplate = `{
                 }
             }
         },
+        "realtime.UpdateRequest": {
+            "type": "object",
+            "properties": {
+                "parkno": {
+                    "type": "string"
+                },
+                "total_payment": {
+                    "type": "integer"
+                }
+            }
+        },
         "resmodel.ErrorResponse": {
             "type": "object",
             "properties": {
@@ -1623,14 +1687,6 @@ const docTemplate = `{
                 }
             }
         },
-        "testz.ZReport": {
-            "type": "object",
-            "properties": {
-                "total_payment": {
-                    "type": "integer"
-                }
-            }
-        },
         "usercontrol.LoginInput": {
             "type": "object",
             "required": [
@@ -1648,6 +1704,20 @@ const docTemplate = `{
                     "type": "string"
                 }
             }
+        },
+        "zreport.ZReport": {
+            "type": "object",
+            "properties": {
+                "parkno": {
+                    "type": "string"
+                },
+                "total_payment": {
+                    "type": "integer"
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
         }
     }
 }`
@@ -1655,7 +1725,7 @@ const docTemplate = `{
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
 	Version:          "",
-	Host:             "127.0.0.1:3000",
+	Host:             "192.168.100.7:3000",
 	BasePath:         "/",
 	Schemes:          []string{},
 	Title:            "Airline REST API",

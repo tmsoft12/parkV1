@@ -15,7 +15,7 @@ import (
 )
 
 // @title Airline REST API
-// @host 127.0.0.1:3000
+// @host 192.168.100.7:3000
 // @BasePath /
 func main() {
 	database.ConnectDB()
@@ -39,6 +39,7 @@ func main() {
 	routes.CameraRoutes(app)
 	routes.AccountantRoutes(app)
 	routes.InitZreport(app)
+	routes.InitRealtime(app)
 	routes.Init(app)
 	app.Listen(":3000")
 }

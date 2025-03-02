@@ -6,6 +6,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"golang.org/x/crypto/bcrypt"
 
+	"park/controller/realtime"
 	"park/database"
 	modelsuser "park/models/modelsUser"
 	"park/util"
@@ -154,6 +155,7 @@ func Login(c *fiber.Ctx) error {
 func Logout(c *fiber.Ctx) error {
 	userIDVal := c.Locals("username")
 	roleVal := c.Locals("role")
+	parkno := c.Locals("parkno")
 	c.Cookie(&fiber.Cookie{
 		Name:     "jwt",
 		Value:    "",
@@ -188,7 +190,12 @@ func Logout(c *fiber.Ctx) error {
 			})
 		}
 	}
-
+	if err := realtime.ResetParkingCount(parkno.(string)); err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"message": "Logout successful but failed to reset parking count",
+			"error":   err.Error(),
+		})
+	}
 	return c.JSON(fiber.Map{
 		"message":       "Logout successful",
 		"total_payment": total_payment,
