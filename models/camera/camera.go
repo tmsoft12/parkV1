@@ -12,13 +12,28 @@ type CapturedEventData struct {
 
 type CameraType string
 
+const (
+	Inside  CameraType = "inside"
+	Outside CameraType = "outside"
+)
+
+type CapturedEventDataE struct {
+	EventID          string    `json:"EventId"`
+	EventDescription string    `json:"EventDescription"`
+	EventComment     string    `json:"EventComment"`
+	ChannelName      string    `json:"ChannelName"`
+	CapturedTime     time.Time `json:"captured_time"`
+	ChannelId        string    `json:"ChannelId"`
+}
+
 type Cameras struct {
 	Id   int        `json:"id"`
 	Name string     `json:"name"`
 	Type CameraType `json:"type"`
 }
 
-const (
-	Inside  CameraType = "inside"
-	Outside CameraType = "outside"
-)
+type CamFix struct {
+	Id          int    `json:"id"`
+	ChannelName string `json:"ChannelName"`
+	ChannelId   string `json:"ChannelId"`
+}

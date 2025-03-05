@@ -37,6 +37,7 @@ func ConnectDB() {
 		&camera.Cameras{},
 		&modeloperator.Operator{},
 		&tarif.Tarif{},
+		&camera.CamFix{},
 	)
 	if err != nil {
 		log.Fatal("Failed to migrate models:", err)

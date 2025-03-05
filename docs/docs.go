@@ -283,6 +283,40 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v1/addcam": {
+            "post": {
+                "description": "Creates a new cam and saves it to the database.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "CamFix"
+                ],
+                "summary": "Create a New CamFix",
+                "parameters": [
+                    {
+                        "description": "Cam details to be created",
+                        "name": "cam",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/camera.CamFix"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Successfully created",
+                        "schema": {
+                            "$ref": "#/definitions/camera.CamFix"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/auth/login": {
             "post": {
                 "description": "{ \"username\": \"Dowran\", \"password\": \"12345678\", \"parkno\": \"P4\" }",
@@ -940,7 +974,7 @@ const docTemplate = `{
         },
         "/api/v1/searchcar": {
             "get": {
-                "description": "Retrieve a paginated list of cars with optional filtering by car number, enter time, end time, park number, and status.",
+                "description": "Retrieve a paginated list of cars with optional filtering by car number, enter time range, end time range, park number, and status.",
                 "consumes": [
                     "application/json"
                 ],
@@ -960,13 +994,13 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "Filter by enter time (YYYY-MM-DD)",
+                        "description": "Start of enter time range (YYYY-MM-DD)",
                         "name": "enter_time",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "Filter by end time (YYYY-MM-DD)",
+                        "description": "End of end time range (YYYY-MM-DD)",
                         "name": "end_time",
                         "in": "query"
                     },
@@ -1391,6 +1425,20 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "camera.CamFix": {
+            "type": "object",
+            "properties": {
+                "ChannelId": {
+                    "type": "string"
+                },
+                "ChannelName": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                }
+            }
+        },
         "camera.CameraType": {
             "type": "string",
             "enum": [
@@ -1725,7 +1773,7 @@ const docTemplate = `{
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
 	Version:          "",
-	Host:             "192.168.100.7:3000",
+	Host:             "127.0.0.1:3000",
 	BasePath:         "/",
 	Schemes:          []string{},
 	Title:            "Airline REST API",

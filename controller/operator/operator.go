@@ -5,9 +5,11 @@ import (
 	"math"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
+	"gorm.io/gorm"
 
 	"park/database"
 	modelscar "park/models/modelsCar"
@@ -187,13 +189,13 @@ func UpdateCar(c *fiber.Ctx) error {
 
 // SearchCar godoc
 // @Summary Search for cars
-// @Description Retrieve a paginated list of cars with optional filtering by car number, enter time, end time, park number, and status.
+// @Description Retrieve a paginated list of cars with optional filtering by car number, enter time range, end time range, park number, and status.
 // @Tags cars
 // @Accept json
 // @Produce json
 // @Param car_number query string false "Filter by car plate number (partial match allowed)"
-// @Param enter_time query string false "Filter by enter time (YYYY-MM-DD)"
-// @Param end_time query string false "Filter by end time (YYYY-MM-DD)"
+// @Param enter_time query string false "Start of enter time range (YYYY-MM-DD)"
+// @Param end_time query string false "End of end time range (YYYY-MM-DD)"
 // @Param parkno query string false "Filter by parking spot number"
 // @Param status query string false "Filter by car status (Inside, Exited)"
 // @Param page query int false "Page number" default(1)
@@ -208,47 +210,58 @@ func SearchCar(c *fiber.Ctx) error {
 	carNumber := c.Query("car_number")
 	enterTime := c.Query("enter_time")
 	endTime := c.Query("end_time")
-	parkNo := c.Locals("parkno")
+	parkNo, _ := c.Locals("parkno").(string)
 	status := c.Query("status")
 	pageStr := c.Query("page", "1")
 	limitStr := c.Query("limit", "5")
 
 	page, err := strconv.Atoi(pageStr)
 	if err != nil || page < 1 {
-		return c.Status(400).JSON(fiber.Map{"message": "Invalid page number"})
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "Invalid page number"})
 	}
 
 	limit, err := strconv.Atoi(limitStr)
 	if err != nil || limit < 1 {
-		return c.Status(400).JSON(fiber.Map{"message": "Invalid limit number"})
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "Invalid limit number"})
 	}
 
-	query := database.DB.Model(&modelscar.Car_Model{})
+	baseQuery := database.DB.Model(&modelscar.Car_Model{}).Debug()
 
 	if carNumber != "" {
-		query = query.Where("car_number LIKE ?", "%"+carNumber+"%")
-	}
-	if enterTime != "" {
-		if _, err := time.Parse("2006-01-02", enterTime); err != nil {
-			return c.Status(400).JSON(fiber.Map{"message": "Invalid enter_time format. Use YYYY-MM-DD."})
-		}
-		query = query.Where("DATE(start_time) = ?", enterTime)
-	}
-	if endTime != "" {
-		if _, err := time.Parse("2006-01-02", endTime); err != nil {
-			return c.Status(400).JSON(fiber.Map{"message": "Invalid end_time format. Use YYYY-MM-DD."})
-		}
-		query = query.Where("DATE(end_time) = ?", endTime)
-	}
-	if parkNo != "" {
-		query = query.Where("park_no = ?", parkNo)
-	}
-	if status != "" {
-		query = query.Where("status = ?", status)
+		baseQuery = baseQuery.Where("car_number LIKE ?", "%"+strings.TrimSpace(carNumber)+"%")
 	}
 
-	if err := query.Count(&totalCount).Error; err != nil {
-		return c.Status(400).JSON(fiber.Map{"message": "Error counting cars", "error": err.Error()})
+	if enterTime != "" {
+		if _, err := time.Parse("2006-01-02", enterTime); err != nil {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "Invalid enter_time format. Use YYYY-MM-DD."})
+		}
+		baseQuery = baseQuery.Where("start_time >= ?", enterTime+" 00:00:00")
+	}
+
+	if endTime != "" {
+		if _, err := time.Parse("2006-01-02", endTime); err != nil {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "Invalid end_time format. Use YYYY-MM-DD."})
+		}
+		baseQuery = baseQuery.Where("end_time <= ?", endTime+" 23:59:59")
+	}
+
+	if parkNo != "" {
+		baseQuery = baseQuery.Where("park_no = ?", parkNo)
+	}
+
+	if status != "" {
+		validStatuses := map[string]bool{"Inside": true, "Exited": true}
+		if !validStatuses[status] {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "Invalid status. Use Inside or Exited."})
+		}
+		baseQuery = baseQuery.Where("status = ?", status)
+	}
+
+	if err := baseQuery.Count(&totalCount).Error; err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"message": "Error counting cars",
+			"error":   err.Error(),
+		})
 	}
 
 	totalPages := int(math.Ceil(float64(totalCount) / float64(limit)))
@@ -256,16 +269,26 @@ func SearchCar(c *fiber.Ctx) error {
 	hasPrev := page > 1
 	offset := (page - 1) * limit
 
-	if err := query.Order("id desc").Limit(limit).Offset(offset).Find(&cars).Error; err != nil {
-		return c.Status(400).JSON(fiber.Map{"message": "Error retrieving cars", "error": err.Error()})
+	query := baseQuery.Session(&gorm.Session{})
+	if err := query.Order("id DESC").Limit(limit).Offset(offset).Find(&cars).Error; err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"message": "Error retrieving cars",
+			"error":   err.Error(),
+		})
 	}
+
 	ip := os.Getenv("HOST")
 	port := os.Getenv("PORT")
-
+	if ip == "" || port == "" {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"message": "Server configuration error: HOST or PORT not set",
+		})
+	}
 	for i := range cars {
 		cars[i].Image_Url = fmt.Sprintf("http://%s:%s/plate/%s", ip, port, cars[i].Image_Url)
 	}
-	return c.Status(200).JSON(GetCarsResponse{
+
+	return c.Status(fiber.StatusOK).JSON(GetCarsResponse{
 		Cars:       cars,
 		Page:       page,
 		Limit:      limit,

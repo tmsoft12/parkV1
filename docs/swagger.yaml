@@ -1,5 +1,14 @@
 basePath: /
 definitions:
+  camera.CamFix:
+    properties:
+      ChannelId:
+        type: string
+      ChannelName:
+        type: string
+      id:
+        type: integer
+    type: object
   camera.CameraType:
     enum:
     - inside
@@ -218,7 +227,7 @@ definitions:
       username:
         type: string
     type: object
-host: 192.168.100.7:3000
+host: 127.0.0.1:3000
 info:
   contact: {}
   title: Airline REST API
@@ -403,6 +412,28 @@ paths:
       summary: Delete Tarif
       tags:
       - Tarif
+  /api/v1/addcam:
+    post:
+      consumes:
+      - application/json
+      description: Creates a new cam and saves it to the database.
+      parameters:
+      - description: Cam details to be created
+        in: body
+        name: cam
+        required: true
+        schema:
+          $ref: '#/definitions/camera.CamFix'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Successfully created
+          schema:
+            $ref: '#/definitions/camera.CamFix'
+      summary: Create a New CamFix
+      tags:
+      - CamFix
   /api/v1/auth/login:
     post:
       consumes:
@@ -848,17 +879,17 @@ paths:
       consumes:
       - application/json
       description: Retrieve a paginated list of cars with optional filtering by car
-        number, enter time, end time, park number, and status.
+        number, enter time range, end time range, park number, and status.
       parameters:
       - description: Filter by car plate number (partial match allowed)
         in: query
         name: car_number
         type: string
-      - description: Filter by enter time (YYYY-MM-DD)
+      - description: Start of enter time range (YYYY-MM-DD)
         in: query
         name: enter_time
         type: string
-      - description: Filter by end time (YYYY-MM-DD)
+      - description: End of end time range (YYYY-MM-DD)
         in: query
         name: end_time
         type: string

@@ -23,7 +23,7 @@ const (
 	statusPending   = "Pending"
 	statusUnpaid    = "Unpaid"
 	timeFormat      = "2006-01-02 15:04:05"
-	defaultImageURL = "testPhoto.jpg"
+	defaultImageURL = "testPhoto.png"
 )
 
 // CreateCarEntry handles the creation of a car entry in the parking lot
@@ -91,7 +91,7 @@ func CreateCarEntry(c *fiber.Ctx) error {
 // @Failure 500 {object} resmodel.ErrorResponse "Internal server error, failed to update data"
 // @Router /api/v1/camera/getdata [put]
 func CreateCarExit(c *fiber.Ctx) error {
-	var capturedData camera.CapturedEventData
+	var capturedData camera.CapturedEventDataE
 
 	if err := c.BodyParser(&capturedData); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
@@ -125,7 +125,8 @@ func CreateCarExit(c *fiber.Ctx) error {
 	carData.Status = statusPending
 	carData.End_time = endTimeStr
 	carData.Reason = "Garasylyar"
-
+	fmt.Println("ChannelName:", capturedData.ChannelName)
+	fmt.Println("ChannelId:", capturedData.ChannelId)
 	if minutes <= 360 {
 		carData.Total_payment = 2
 	} else if minutes <= 1440 {
@@ -157,7 +158,8 @@ func CreateCarExit(c *fiber.Ctx) error {
 	operator.Broadcast <- carData
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
-		"message": "Car exit updated successfully",
-		"car":     carData,
+		"message":     "Car exit updated successfully",
+		"car":         carData,
+		"openCommand": capturedData,
 	})
 }

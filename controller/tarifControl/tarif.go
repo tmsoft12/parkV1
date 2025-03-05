@@ -26,7 +26,6 @@ import (
 // @Router /api/v1/accountant/tarif [post]
 var TimeFormat = "2006-01-02 15:04:05"
 
-// Tarif struct with custom time unmarshaling
 type Tarif struct {
 	Id         int       `json:"id"`
 	Plate      string    `json:"plate"`

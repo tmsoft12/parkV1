@@ -15,7 +15,7 @@ import (
 )
 
 // @title Airline REST API
-// @host 192.168.100.7:3000
+// @host 127.0.0.1:3000
 // @BasePath /
 func main() {
 	database.ConnectDB()
@@ -24,11 +24,11 @@ func main() {
 	app := fiber.New()
 	app.Use(logger.New())
 	app.Use(cors.New(cors.Config{
-		// AllowOrigins: "http://172.16.4.204",
-		AllowOrigins: "*",
-		// AllowCredentials: true,
-		AllowHeaders: "Origin, Content-Type, Accept",
-		AllowMethods: "GET, POST, PUT, DELETE",
+		AllowOrigins: "http://127.0.0.1",
+		// AllowOrigins: "*",.
+		AllowCredentials: true,
+		AllowHeaders:     "Origin, Content-Type, Accept",
+		AllowMethods:     "GET, POST, PUT, DELETE",
 	}))
 	app.Get("/swagger/*", swagger.HandlerDefault)
 	go operator.HandleMessages()
@@ -40,6 +40,7 @@ func main() {
 	routes.AccountantRoutes(app)
 	routes.InitZreport(app)
 	routes.InitRealtime(app)
+	routes.FixRoute(app)
 	routes.Init(app)
 	app.Listen(":3000")
 }
