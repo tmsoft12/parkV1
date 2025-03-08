@@ -43,7 +43,7 @@ func UsersCount(c *fiber.Ctx) error {
 			"message": "Error counting users by role",
 		})
 	}
-	if err := database.DB.Model(&camera.Cameras{}).Count(&cameraCount).Error; err != nil {
+	if err := database.DB.Model(&camera.CamFix{}).Count(&cameraCount).Error; err != nil {
 		return c.Status(500).JSON(fiber.Map{
 			"message": "Error counting camera",
 		})

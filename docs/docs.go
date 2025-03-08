@@ -313,6 +313,24 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/camera.CamFix"
                         }
+                    },
+                    "400": {
+                        "description": "Invalid data",
+                        "schema": {
+                            "$ref": "#/definitions/camfix.Response"
+                        }
+                    },
+                    "409": {
+                        "description": "Camera already exists",
+                        "schema": {
+                            "$ref": "#/definitions/camfix.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/camfix.Response"
+                        }
                     }
                 }
             }
@@ -889,6 +907,50 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v1/deletecam/{id}": {
+            "delete": {
+                "description": "Deletes a camera from the database using its ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "CamFix"
+                ],
+                "summary": "Delete a CamFix by ID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID of the camera to delete",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successfully deleted",
+                        "schema": {
+                            "$ref": "#/definitions/camfix.Response"
+                        }
+                    },
+                    "404": {
+                        "description": "Camera not found",
+                        "schema": {
+                            "$ref": "#/definitions/camfix.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/camfix.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/getallcars": {
             "get": {
                 "description": "Get list of cars with pagination",
@@ -1047,6 +1109,98 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v1/type/{id}": {
+            "patch": {
+                "description": "Update only the Type of a camera by its ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "CamFix"
+                ],
+                "summary": "Update Camera Type",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Camera ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "New camera type",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/camfix.UpdateCameraTypeRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/camera.CamFix"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/camfix.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/camfix.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/camfix.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/update-channel-ids": {
+            "put": {
+                "description": "Updates ChannelId for all CamFix records matching the provided ChannelName(s).",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "CamFix"
+                ],
+                "summary": "Update ChannelIds by ChannelName",
+                "parameters": [
+                    {
+                        "description": "List of ChannelName and ChannelId pairs to update",
+                        "name": "updates",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "additionalProperties": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                ],
+                "responses": {}
+            }
+        },
         "/api/v1/update/count": {
             "get": {
                 "description": "Provides real-time updates of parking counts via WebSocket",
@@ -1095,6 +1249,58 @@ const docTemplate = `{
                             "additionalProperties": {
                                 "type": "string"
                             }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/updatemac": {
+            "put": {
+                "description": "Update an existing MacUser's details such as MacUsername and MacPassword",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "CamFix"
+                ],
+                "summary": "Update an existing MacUser",
+                "parameters": [
+                    {
+                        "description": "MacUser object",
+                        "name": "macuser",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/modelsuser.MacUser"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/camfix.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/camfix.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/camfix.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/camfix.ErrorResponse"
                         }
                     }
                 }
@@ -1436,6 +1642,9 @@ const docTemplate = `{
                 },
                 "id": {
                     "type": "integer"
+                },
+                "type": {
+                    "$ref": "#/definitions/camera.CameraType"
                 }
             }
         },
@@ -1480,6 +1689,44 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "captured_time": {
+                    "type": "string"
+                }
+            }
+        },
+        "camfix.ErrorResponse": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "type": "string"
+                }
+            }
+        },
+        "camfix.Response": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "camfix.SuccessResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string"
+                },
+                "user": {
+                    "$ref": "#/definitions/modelsuser.MacUser"
+                }
+            }
+        },
+        "camfix.UpdateCameraTypeRequest": {
+            "type": "object",
+            "required": [
+                "type"
+            ],
+            "properties": {
+                "type": {
                     "type": "string"
                 }
             }
@@ -1555,6 +1802,20 @@ const docTemplate = `{
                     "type": "number"
                 },
                 "user_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "modelsuser.MacUser": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "macpassword": {
+                    "type": "string"
+                },
+                "macusername": {
                     "type": "string"
                 }
             }
@@ -1773,7 +2034,7 @@ const docTemplate = `{
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
 	Version:          "",
-	Host:             "127.0.0.1:3000",
+	Host:             "192.168.100.7:3000",
 	BasePath:         "/",
 	Schemes:          []string{},
 	Title:            "Airline REST API",

@@ -13,6 +13,8 @@ type Car_Model struct {
 	Duration      int     `json:"duration"`
 	User_id       string  `json:"user_id"`
 	PayStatus     bool    `json:"paystatus"`
+	CameraID      string  `json:"cameraid"`
+	CamToken      string  `json:"ChannelId"`
 }
 
 type CarUpdate struct {

@@ -36,3 +36,9 @@ const (
 	OperatorRole   RoleType = "operator"
 	AccountantRole RoleType = "accountant"
 )
+
+type MacUser struct {
+	Id          int    `json:"id"`
+	MacUsername string `json:"macusername"`
+	MacPassword string `json:"macpassword"`
+}

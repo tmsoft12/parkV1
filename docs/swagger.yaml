@@ -8,6 +8,8 @@ definitions:
         type: string
       id:
         type: integer
+      type:
+        $ref: '#/definitions/camera.CameraType'
     type: object
   camera.CameraType:
     enum:
@@ -38,6 +40,30 @@ definitions:
         type: string
       captured_time:
         type: string
+    type: object
+  camfix.ErrorResponse:
+    properties:
+      error:
+        type: string
+    type: object
+  camfix.Response:
+    properties:
+      message:
+        type: string
+    type: object
+  camfix.SuccessResponse:
+    properties:
+      message:
+        type: string
+      user:
+        $ref: '#/definitions/modelsuser.MacUser'
+    type: object
+  camfix.UpdateCameraTypeRequest:
+    properties:
+      type:
+        type: string
+    required:
+    - type
     type: object
   modeloperator.Operator:
     properties:
@@ -87,6 +113,15 @@ definitions:
         type: string
       total_payment:
         type: number
+    type: object
+  modelsuser.MacUser:
+    properties:
+      id:
+        type: integer
+      macpassword:
+        type: string
+      macusername:
+        type: string
     type: object
   modelsuser.RoleType:
     enum:
@@ -227,7 +262,7 @@ definitions:
       username:
         type: string
     type: object
-host: 127.0.0.1:3000
+host: 192.168.100.7:3000
 info:
   contact: {}
   title: Airline REST API
@@ -431,6 +466,18 @@ paths:
           description: Successfully created
           schema:
             $ref: '#/definitions/camera.CamFix'
+        "400":
+          description: Invalid data
+          schema:
+            $ref: '#/definitions/camfix.Response'
+        "409":
+          description: Camera already exists
+          schema:
+            $ref: '#/definitions/camfix.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/camfix.Response'
       summary: Create a New CamFix
       tags:
       - CamFix
@@ -819,6 +866,35 @@ paths:
       summary: Update a camera by ID
       tags:
       - Cameras
+  /api/v1/deletecam/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Deletes a camera from the database using its ID
+      parameters:
+      - description: ID of the camera to delete
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successfully deleted
+          schema:
+            $ref: '#/definitions/camfix.Response'
+        "404":
+          description: Camera not found
+          schema:
+            $ref: '#/definitions/camfix.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/camfix.Response'
+      summary: Delete a CamFix by ID
+      tags:
+      - CamFix
   /api/v1/getallcars:
     get:
       consumes:
@@ -925,6 +1001,68 @@ paths:
       summary: Search for cars
       tags:
       - cars
+  /api/v1/type/{id}:
+    patch:
+      consumes:
+      - application/json
+      description: Update only the Type of a camera by its ID
+      parameters:
+      - description: Camera ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: New camera type
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/camfix.UpdateCameraTypeRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/camera.CamFix'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/camfix.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/camfix.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/camfix.ErrorResponse'
+      summary: Update Camera Type
+      tags:
+      - CamFix
+  /api/v1/update-channel-ids:
+    put:
+      consumes:
+      - application/json
+      description: Updates ChannelId for all CamFix records matching the provided
+        ChannelName(s).
+      parameters:
+      - description: List of ChannelName and ChannelId pairs to update
+        in: body
+        name: updates
+        required: true
+        schema:
+          items:
+            additionalProperties:
+              type: string
+            type: object
+          type: array
+      produces:
+      - application/json
+      responses: {}
+      summary: Update ChannelIds by ChannelName
+      tags:
+      - CamFix
   /api/v1/update/count:
     get:
       description: Provides real-time updates of parking counts via WebSocket
@@ -961,6 +1099,40 @@ paths:
               type: string
             type: object
       summary: Update the count value for a specific parking number
+  /api/v1/updatemac:
+    put:
+      consumes:
+      - application/json
+      description: Update an existing MacUser's details such as MacUsername and MacPassword
+      parameters:
+      - description: MacUser object
+        in: body
+        name: macuser
+        required: true
+        schema:
+          $ref: '#/definitions/modelsuser.MacUser'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/camfix.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/camfix.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/camfix.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/camfix.ErrorResponse'
+      summary: Update an existing MacUser
+      tags:
+      - CamFix
   /api/v1/user/operators:
     get:
       consumes:

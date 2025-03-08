@@ -33,7 +33,8 @@ type Cameras struct {
 }
 
 type CamFix struct {
-	Id          int    `json:"id"`
-	ChannelName string `json:"ChannelName"`
-	ChannelId   string `json:"ChannelId"`
+	Id          int        `json:"id"`
+	ChannelName string     `json:"ChannelName"`
+	ChannelId   string     `json:"ChannelId"`
+	Type        CameraType `json:"type"`
 }

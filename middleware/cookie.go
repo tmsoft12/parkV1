@@ -2,7 +2,6 @@ package middleware
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"strings"
 
@@ -34,7 +33,7 @@ func Auth(c *fiber.Ctx) error {
 			"message": "Unauthorized - Invalid token",
 		})
 	}
-	log.Println(claims)
+
 	username, ok := claims["username"].(string)
 	if !ok || username == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
@@ -75,10 +74,28 @@ func Auth(c *fiber.Ctx) error {
 		})
 	}
 
+	macusername, ok := claims["macusername"].(string)
+	if !ok {
+		macusername = "N/A"
+	}
+
+	macpassword, ok := claims["macpassword"].(string)
+	if !ok {
+		macpassword = "N/A"
+	}
+
+	keys, ok := claims["keys"].(string)
+	if !ok {
+		keys = "N/A"
+	}
+
 	c.Locals("parkno", parkNo)
 	c.Locals("user_id", userID)
 	c.Locals("username", username)
 	c.Locals("role", role)
+	c.Locals("macusername", macusername)
+	c.Locals("macpassword", macpassword)
+	c.Locals("keys", keys)
 
 	return c.Next()
 }

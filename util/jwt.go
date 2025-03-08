@@ -10,16 +10,19 @@ import (
 	"github.com/golang-jwt/jwt/v4"
 )
 
-func CreateJWT(userID int, username string, role modelsuser.RoleType, parkno string) (string, error) {
+func CreateJWT(userID int, username string, role modelsuser.RoleType, parkno string, macusername string, macpassword string, keys string) (string, error) {
 	expirationTime := time.Now().Add(24 * time.Hour)
 
 	secretKey := os.Getenv("SECRET_KEY_JWT")
 	claims := jwt.MapClaims{
-		"user_id":  strconv.Itoa(userID),
-		"username": username,
-		"role":     role,
-		"parkno":   parkno,
-		"exp":      expirationTime.Unix(),
+		"user_id":     strconv.Itoa(userID),
+		"username":    username,
+		"role":        role,
+		"parkno":      parkno,
+		"macusername": macusername,
+		"macpassword": macpassword,
+		"keys":        keys, // Burada JSON stringini kullanıyoruz
+		"exp":         expirationTime.Unix(),
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)

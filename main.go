@@ -15,7 +15,7 @@ import (
 )
 
 // @title Airline REST API
-// @host 127.0.0.1:3000
+// @host 192.168.100.7:3000
 // @BasePath /
 func main() {
 	database.ConnectDB()
@@ -24,7 +24,7 @@ func main() {
 	app := fiber.New()
 	app.Use(logger.New())
 	app.Use(cors.New(cors.Config{
-		AllowOrigins: "http://127.0.0.1",
+		AllowOrigins: "http://192.168.100.217",
 		// AllowOrigins: "*",.
 		AllowCredentials: true,
 		AllowHeaders:     "Origin, Content-Type, Accept",

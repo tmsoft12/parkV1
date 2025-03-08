@@ -1,6 +1,8 @@
 package usercontrol
 
 import (
+	"encoding/json"
+	"fmt"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -8,6 +10,7 @@ import (
 
 	"park/controller/realtime"
 	"park/database"
+	"park/models/camera"
 	modelsuser "park/models/modelsUser"
 	"park/util"
 )
@@ -98,6 +101,7 @@ func Login(c *fiber.Ctx) error {
 		LoginInput
 		ParkNo string `json:"parkno" validate:"required"`
 	}
+
 	if err := c.BodyParser(&loginInput); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"message": "Bad Request",
@@ -123,7 +127,30 @@ func Login(c *fiber.Ctx) error {
 		})
 	}
 
-	token, err := util.CreateJWT(user.Id, user.Username, user.Role, loginInput.ParkNo)
+	var camFixes []camera.CamFix
+	if err := database.DB.Where("channel_name LIKE ? AND type = ?", loginInput.ParkNo+"%", "outside").Find(&camFixes).Error; err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"message": "Invalid Parkno or No matching records with 'outside' type",
+		})
+	}
+
+	camFixesJson, err := json.Marshal(camFixes)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"message": "Error marshalling camFixes",
+		})
+	}
+
+	keys := string(camFixesJson)
+
+	var macuser modelsuser.MacUser
+	if err := database.DB.Where("id = ?", 1).First(&macuser).Error; err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"message": "MacUser with id 1 not found",
+		})
+	}
+
+	token, err := util.CreateJWT(user.Id, user.Username, user.Role, loginInput.ParkNo, macuser.MacUsername, macuser.MacPassword, keys)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"message": "Error creating JWT",
@@ -135,9 +162,11 @@ func Login(c *fiber.Ctx) error {
 		Value:    token,
 		HTTPOnly: true,
 		SameSite: "Strict",
-		MaxAge:   86400,
+		MaxAge:   86400, // 1 gün
 	})
+
 	util.LoginMath(user.Username, string(user.Role), loginInput.ParkNo)
+
 	role := user.Role
 	return c.JSON(fiber.Map{
 		"message": "Login successful",
@@ -217,6 +246,9 @@ func Me(c *fiber.Ctx) error {
 	roleVal := c.Locals("role")
 	userIDVal := c.Locals("user_id")
 	parkno := c.Locals("parkno")
+	macusername := c.Locals("macusername")
+	macpassword := c.Locals("macpassword")
+	keysVal := c.Locals("keys")
 
 	if usernameVal == nil || roleVal == nil || userIDVal == nil || parkno == nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
@@ -224,36 +256,36 @@ func Me(c *fiber.Ctx) error {
 		})
 	}
 
-	username, ok := usernameVal.(string)
-	if !ok {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"message": "Internal Server Error - Invalid username type",
-		})
-	}
-	park, ok := parkno.(string)
-	if !ok {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"message": "Internal Server Error - Invalid parkno type",
-		})
-	}
-	role, ok := roleVal.(string)
-	if !ok {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"message": "Internal Server Error - Invalid role type",
-		})
-	}
+	username, _ := usernameVal.(string)
+	park, _ := parkno.(string)
+	role, _ := roleVal.(string)
+	userID, _ := userIDVal.(string)
 
-	userID, ok := userIDVal.(string)
-	if !ok {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"message": "Internal Server Error - Invalid user ID type",
-		})
+	keys, _ := keysVal.(string)
+	var camFixes []camera.CamFix
+	if keys != "N/A" && keys != "" {
+		parsedKeys, err := ParseKeys(keys)
+		if err == nil {
+			camFixes = parsedKeys
+		}
 	}
 
 	return c.JSON(fiber.Map{
-		"username": username,
-		"role":     role,
-		"user_id":  userID,
-		"parkno":   park,
+		"username":    username,
+		"role":        role,
+		"user_id":     userID,
+		"parkno":      park,
+		"macusername": macusername,
+		"macpassword": macpassword,
+		"keys":        camFixes,
 	})
+}
+
+func ParseKeys(keysJson string) ([]camera.CamFix, error) {
+	var camFixes []camera.CamFix
+	err := json.Unmarshal([]byte(keysJson), &camFixes)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse keys JSON: %w", err)
+	}
+	return camFixes, nil
 }
