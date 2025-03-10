@@ -149,7 +149,7 @@ func CreateCarExit(c *fiber.Ctx) error {
 		log.Println("Regular car:", capturedData.EventComment)
 	}
 
-	carData.Status = ""
+	carData.Status = statusPending
 	carData.End_time = endTimeStr
 	carData.Reason = "Garasylyar"
 	carData.CameraID = string(capturedData.ChannelName)
@@ -167,6 +167,101 @@ func CreateCarExit(c *fiber.Ctx) error {
 	log.Println("Sending notification, license plate:", carData.Car_number)
 	carData.CamToken = capturedData.ChannelId
 	operator.Broadcast <- carData
+
+	ip := os.Getenv("HOST")
+	port := os.Getenv("PORT")
+	carData.Image_Url = fmt.Sprintf("http://%s:%s/plate/%s", ip, port, carData.Image_Url)
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"message":     "Car exit updated successfully",
+		"car":         carData,
+		"openCommand": capturedData,
+	})
+}
+
+// CreateCarExit handles the car exit process from the parking lot
+// @Summary Create a car exit record in the parking lot
+// @Description {"EventComment": "BE5084AG"}
+// @Tags Car Entry
+// @Accept json
+// @Produce json
+// @Param request body camera.CapturedEventData true "Captured data from the camera"
+// @Success 200 {object} resmodel.Response "Car exit updated successfully"
+// @Failure 400 {object} resmodel.ErrorResponse "Bad request, car already exited"
+// @Failure 404 {object} resmodel.ErrorResponse "Car not found"
+// @Failure 500 {object} resmodel.ErrorResponse "Internal server error, failed to update data"
+// @Router /api/v1/camera/getdata/nows [put]
+func CreateCarExitNoWs(c *fiber.Ctx) error {
+
+	var capturedData camera.CapturedEventDataE
+
+	if err := c.BodyParser(&capturedData); err != nil {
+		log.Println("Error: Invalid request -", err)
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "Invalid request",
+			"error":   err.Error(),
+		})
+	}
+
+	log.Println("License plate information received:", capturedData.EventComment)
+
+	var carData modelscar.Car_Model
+	if err := database.DB.Where("car_number = ?", capturedData.EventComment).Order("id desc").First(&carData).Error; err != nil {
+		log.Println("Error: Car not found -", capturedData.EventComment)
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+			"message": "Car not found",
+			"error":   err.Error(),
+		})
+	}
+
+	if carData.Status == statusExited {
+		log.Println("Car has already exited:", capturedData.EventComment)
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "Car already exited",
+		})
+	}
+
+	startTimeStr := carData.Start_time
+	endTimeStr := time.Now().Format(timeFormat)
+	startTime, _ := time.Parse(timeFormat, startTimeStr)
+	endTime, _ := time.Parse(timeFormat, endTimeStr)
+	duration := endTime.Sub(startTime)
+	minutes := duration.Minutes()
+	carData.Duration = int(minutes)
+
+	if minutes <= 360 {
+		carData.Total_payment = 2
+	} else if minutes <= 1440 {
+		carData.Total_payment = 3
+	} else {
+		days := int(math.Ceil(minutes / 1440))
+		carData.Total_payment = float64(3 * days)
+	}
+
+	if util.IsVIPPlate(capturedData.EventComment) {
+		log.Println("VIP car detected:", capturedData.EventComment)
+		carData.Total_payment = 0
+	} else {
+		log.Println("Regular car:", capturedData.EventComment)
+	}
+
+	carData.Status = statusPending
+	carData.End_time = endTimeStr
+	carData.Reason = "Garasylyar"
+	carData.CameraID = string(capturedData.ChannelName)
+
+	log.Println("Updating database, license plate:", carData.Car_number)
+
+	if err := database.DB.Model(&carData).Updates(carData).Error; err != nil {
+		log.Println("Error: Database update failed -", err)
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"message": "Database update failed",
+			"error":   err.Error(),
+		})
+	}
+
+	log.Println("Sending notification, license plate:", carData.Car_number)
+	carData.CamToken = capturedData.ChannelId
 
 	ip := os.Getenv("HOST")
 	port := os.Getenv("PORT")

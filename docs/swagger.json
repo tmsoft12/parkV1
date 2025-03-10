@@ -4,7 +4,7 @@
         "title": "Airline REST API",
         "contact": {}
     },
-    "host": "192.168.100.7:3000",
+    "host": "192.168.43.53:3000",
     "basePath": "/",
     "paths": {
         "/api/v1/accountant/calculateMoney": {
@@ -618,6 +618,58 @@
                     },
                     "500": {
                         "description": "Internal server error, failed to save data",
+                        "schema": {
+                            "$ref": "#/definitions/resmodel.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/camera/getdata/nows": {
+            "put": {
+                "description": "{\"EventComment\": \"BE5084AG\"}",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Car Entry"
+                ],
+                "summary": "Create a car exit record in the parking lot",
+                "parameters": [
+                    {
+                        "description": "Captured data from the camera",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/camera.CapturedEventData"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Car exit updated successfully",
+                        "schema": {
+                            "$ref": "#/definitions/resmodel.Response"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request, car already exited",
+                        "schema": {
+                            "$ref": "#/definitions/resmodel.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Car not found",
+                        "schema": {
+                            "$ref": "#/definitions/resmodel.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error, failed to update data",
                         "schema": {
                             "$ref": "#/definitions/resmodel.ErrorResponse"
                         }
@@ -1760,6 +1812,12 @@
         "modelscar.Car_Model": {
             "type": "object",
             "properties": {
+                "ChannelId": {
+                    "type": "string"
+                },
+                "cameraid": {
+                    "type": "string"
+                },
                 "car_number": {
                     "type": "string"
                 },

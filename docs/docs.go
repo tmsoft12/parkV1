@@ -633,6 +633,58 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v1/camera/getdata/nows": {
+            "put": {
+                "description": "{\"EventComment\": \"BE5084AG\"}",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Car Entry"
+                ],
+                "summary": "Create a car exit record in the parking lot",
+                "parameters": [
+                    {
+                        "description": "Captured data from the camera",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/camera.CapturedEventData"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Car exit updated successfully",
+                        "schema": {
+                            "$ref": "#/definitions/resmodel.Response"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request, car already exited",
+                        "schema": {
+                            "$ref": "#/definitions/resmodel.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Car not found",
+                        "schema": {
+                            "$ref": "#/definitions/resmodel.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error, failed to update data",
+                        "schema": {
+                            "$ref": "#/definitions/resmodel.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/camera/updatecar/{plate}": {
             "put": {
                 "description": "Updates a car's status and calculates payment and duration based on start and end times.",
@@ -1768,6 +1820,12 @@ const docTemplate = `{
         "modelscar.Car_Model": {
             "type": "object",
             "properties": {
+                "ChannelId": {
+                    "type": "string"
+                },
+                "cameraid": {
+                    "type": "string"
+                },
                 "car_number": {
                     "type": "string"
                 },
@@ -2034,7 +2092,7 @@ const docTemplate = `{
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
 	Version:          "",
-	Host:             "192.168.100.7:3000",
+	Host:             "192.168.43.53:3000",
 	BasePath:         "/",
 	Schemes:          []string{},
 	Title:            "Airline REST API",

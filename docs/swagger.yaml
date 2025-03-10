@@ -82,6 +82,10 @@ definitions:
     type: object
   modelscar.Car_Model:
     properties:
+      ChannelId:
+        type: string
+      cameraid:
+        type: string
       car_number:
         type: string
       duration:
@@ -262,7 +266,7 @@ definitions:
       username:
         type: string
     type: object
-host: 192.168.100.7:3000
+host: 192.168.43.53:3000
 info:
   contact: {}
   title: Airline REST API
@@ -649,6 +653,40 @@ paths:
       summary: Create a new car entry in the parking lot
       tags:
       - Car Entry
+    put:
+      consumes:
+      - application/json
+      description: '{"EventComment": "BE5084AG"}'
+      parameters:
+      - description: Captured data from the camera
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/camera.CapturedEventData'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Car exit updated successfully
+          schema:
+            $ref: '#/definitions/resmodel.Response'
+        "400":
+          description: Bad request, car already exited
+          schema:
+            $ref: '#/definitions/resmodel.ErrorResponse'
+        "404":
+          description: Car not found
+          schema:
+            $ref: '#/definitions/resmodel.ErrorResponse'
+        "500":
+          description: Internal server error, failed to update data
+          schema:
+            $ref: '#/definitions/resmodel.ErrorResponse'
+      summary: Create a car exit record in the parking lot
+      tags:
+      - Car Entry
+  /api/v1/camera/getdata/nows:
     put:
       consumes:
       - application/json

@@ -20,5 +20,6 @@ func CameraRoutes(app *fiber.App) {
 	camera := app.Group("/api/v1/camera")
 	camera.Post("/getdata", getdata.CreateCarEntry)
 	camera.Put("/getdata", getdata.CreateCarExit)
+	camera.Put("/getdata/nows", getdata.CreateCarExitNoWs)
 	camera.Put("/updatecar/:plate", middleware.Auth, operator.UpdateCar)
 }
