@@ -162,7 +162,7 @@ func Login(c *fiber.Ctx) error {
 		Value:    token,
 		HTTPOnly: true,
 		SameSite: "Strict",
-		MaxAge:   86400, // 1 gün
+		MaxAge:   86400,
 	})
 
 	util.LoginMath(user.Username, string(user.Role), loginInput.ParkNo)
@@ -218,13 +218,16 @@ func Logout(c *fiber.Ctx) error {
 				"error":   err.Error(),
 			})
 		}
+
+		if err := realtime.ResetParkingCount(parkno.(string)); err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"message": "Logout successful but failed to reset parking count",
+				"error":   err.Error(),
+			})
+		}
+
 	}
-	if err := realtime.ResetParkingCount(parkno.(string)); err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"message": "Logout successful but failed to reset parking count",
-			"error":   err.Error(),
-		})
-	}
+
 	return c.JSON(fiber.Map{
 		"message":       "Logout successful",
 		"total_payment": total_payment,

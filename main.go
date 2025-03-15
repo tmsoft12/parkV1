@@ -15,7 +15,7 @@ import (
 )
 
 // @title Airline REST API
-// @host 192.168.43.53:3000
+// @host 127.0.0.1:3000
 // @BasePath /
 func main() {
 	database.ConnectDB()

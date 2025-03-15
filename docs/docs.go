@@ -2092,7 +2092,7 @@ const docTemplate = `{
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
 	Version:          "",
-	Host:             "192.168.43.53:3000",
+	Host:             "127.0.0.1:3000",
 	BasePath:         "/",
 	Schemes:          []string{},
 	Title:            "Airline REST API",
