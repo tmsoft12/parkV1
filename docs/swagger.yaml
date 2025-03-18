@@ -627,7 +627,8 @@ paths:
     post:
       consumes:
       - application/json
-      description: '{"ChannelName": "P41", "EventComment": "BE5084AG"}'
+      description: '{"EventComment": "BE5084AG", "ChannelId": "8dc9685f-a80b-4d95-ae19-da340efe89ab",
+        "ChannelName": "P4-6"}'
       parameters:
       - description: Captured data from the camera
         in: body
@@ -656,7 +657,8 @@ paths:
     put:
       consumes:
       - application/json
-      description: '{"EventComment": "BE5084AG"}'
+      description: '{"EventComment": "BE5084AG", "ChannelId": "8dc9685f-a80b-4d95-ae19-da340efe89ab",
+        "ChannelName": "P4-6"}'
       parameters:
       - description: Captured data from the camera
         in: body
@@ -690,7 +692,8 @@ paths:
     put:
       consumes:
       - application/json
-      description: '{"EventComment": "BE5084AG"}'
+      description: '{"ChannelName": "P3-2","EventComment": "BE5084AG","ChannelId":
+        "d9b8389a-0727-43d8-afef-c6c937b7f320"}'
       parameters:
       - description: Captured data from the camera
         in: body

@@ -10,6 +10,7 @@ import (
 
 	"park/controller/realtime"
 	"park/database"
+	"park/middleware"
 	"park/models/camera"
 	modelsuser "park/models/modelsUser"
 	"park/util"
@@ -156,7 +157,7 @@ func Login(c *fiber.Ctx) error {
 			"message": "Error creating JWT",
 		})
 	}
-
+	middleware.SetParkNoCookie(c, loginInput.ParkNo)
 	c.Cookie(&fiber.Cookie{
 		Name:     "jwt",
 		Value:    token,

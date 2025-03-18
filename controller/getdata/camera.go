@@ -28,7 +28,7 @@ const (
 
 // CreateCarEntry handles the creation of a car entry in the parking lot
 // @Summary Create a new car entry in the parking lot
-// @Description {"ChannelName": "P41", "EventComment": "BE5084AG"}
+// @Description  {"EventComment": "BE5084AG", "ChannelId": "8dc9685f-a80b-4d95-ae19-da340efe89ab", "ChannelName": "P4-6"}
 // @Tags Car Entry
 // @Accept json
 // @Produce json
@@ -54,7 +54,7 @@ func CreateCarEntry(c *fiber.Ctx) error {
 	carData.Status = statusInside
 	carData.Start_time = now
 	carData.Image_Url = defaultImageURL
-	carData.Reason = "Girdi"
+	carData.Reason = "entry"
 	carData.PayStatus = true
 	var existingCar modelscar.Car_Model
 	err := database.DB.Order("id desc").First(&existingCar, "car_number = ? AND status = ?", carData.Car_number, statusInside).Error
@@ -85,7 +85,7 @@ type BroadcastMessage struct {
 
 // CreateCarExit handles the car exit process from the parking lot
 // @Summary Create a car exit record in the parking lot
-// @Description {"EventComment": "BE5084AG"}
+// @Description     {"EventComment": "BE5084AG", "ChannelId": "8dc9685f-a80b-4d95-ae19-da340efe89ab", "ChannelName": "P4-6"}
 // @Tags Car Entry
 // @Accept json
 // @Produce json
@@ -100,14 +100,11 @@ func CreateCarExit(c *fiber.Ctx) error {
 	var capturedData camera.CapturedEventDataE
 
 	if err := c.BodyParser(&capturedData); err != nil {
-		log.Println("Error: Invalid request -", err)
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"message": "Invalid request",
 			"error":   err.Error(),
 		})
 	}
-
-	log.Println("License plate information received:", capturedData.EventComment)
 
 	var carData modelscar.Car_Model
 	if err := database.DB.Where("car_number = ?", capturedData.EventComment).Order("id desc").First(&carData).Error; err != nil {
@@ -119,7 +116,6 @@ func CreateCarExit(c *fiber.Ctx) error {
 	}
 
 	if carData.Status == statusExited {
-		log.Println("Car has already exited:", capturedData.EventComment)
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"message": "Car already exited",
 		})
@@ -143,34 +139,26 @@ func CreateCarExit(c *fiber.Ctx) error {
 	}
 
 	if util.IsVIPPlate(capturedData.EventComment) {
-		log.Println("VIP car detected:", capturedData.EventComment)
 		carData.Total_payment = 0
-	} else {
-		log.Println("Regular car:", capturedData.EventComment)
 	}
-
 	carData.Status = statusPending
 	carData.End_time = endTimeStr
-	carData.Reason = "Garasylyar"
+	carData.Reason = "waiting"
 	carData.CameraID = string(capturedData.ChannelName)
 
-	log.Println("Updating database, license plate:", carData.Car_number)
-
 	if err := database.DB.Model(&carData).Updates(carData).Error; err != nil {
-		log.Println("Error: Database update failed -", err)
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"message": "Database update failed",
 			"error":   err.Error(),
 		})
 	}
 
-	log.Println("Sending notification, license plate:", carData.Car_number)
 	carData.CamToken = capturedData.ChannelId
-	operator.Broadcast <- carData
 
 	ip := os.Getenv("HOST")
 	port := os.Getenv("PORT")
 	carData.Image_Url = fmt.Sprintf("http://%s:%s/plate/%s", ip, port, carData.Image_Url)
+	operator.Broadcast <- carData
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"message":     "Car exit updated successfully",
@@ -181,7 +169,7 @@ func CreateCarExit(c *fiber.Ctx) error {
 
 // CreateCarExit handles the car exit process from the parking lot
 // @Summary Create a car exit record in the parking lot
-// @Description {"EventComment": "BE5084AG"}
+// @Description {"ChannelName": "P3-2","EventComment": "BE5084AG","ChannelId": "d9b8389a-0727-43d8-afef-c6c937b7f320"}
 // @Tags Car Entry
 // @Accept json
 // @Produce json
@@ -203,8 +191,6 @@ func CreateCarExitNoWs(c *fiber.Ctx) error {
 		})
 	}
 
-	log.Println("License plate information received:", capturedData.EventComment)
-
 	var carData modelscar.Car_Model
 	if err := database.DB.Where("car_number = ?", capturedData.EventComment).Order("id desc").First(&carData).Error; err != nil {
 		log.Println("Error: Car not found -", capturedData.EventComment)
@@ -215,7 +201,6 @@ func CreateCarExitNoWs(c *fiber.Ctx) error {
 	}
 
 	if carData.Status == statusExited {
-		log.Println("Car has already exited:", capturedData.EventComment)
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"message": "Car already exited",
 		})
@@ -239,28 +224,20 @@ func CreateCarExitNoWs(c *fiber.Ctx) error {
 	}
 
 	if util.IsVIPPlate(capturedData.EventComment) {
-		log.Println("VIP car detected:", capturedData.EventComment)
 		carData.Total_payment = 0
-	} else {
-		log.Println("Regular car:", capturedData.EventComment)
 	}
-
 	carData.Status = statusPending
 	carData.End_time = endTimeStr
 	carData.Reason = "Garasylyar"
 	carData.CameraID = string(capturedData.ChannelName)
 
-	log.Println("Updating database, license plate:", carData.Car_number)
-
 	if err := database.DB.Model(&carData).Updates(carData).Error; err != nil {
-		log.Println("Error: Database update failed -", err)
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"message": "Database update failed",
 			"error":   err.Error(),
 		})
 	}
 
-	log.Println("Sending notification, license plate:", carData.Car_number)
 	carData.CamToken = capturedData.ChannelId
 
 	ip := os.Getenv("HOST")

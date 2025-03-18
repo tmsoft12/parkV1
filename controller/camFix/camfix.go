@@ -40,7 +40,7 @@ func AddCam(c *fiber.Ctx) error {
 		})
 	}
 
-	fmt.Println(fix)
+	// fmt.Println(fix)
 	return c.Status(201).JSON(fix)
 }
 

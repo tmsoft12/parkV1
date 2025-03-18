@@ -29,6 +29,7 @@ func Ws(c *websocket.Conn) {
 		if _, ok := msg.(string); ok && msg == "refresh" {
 			Refresh <- struct{}{}
 		} else if car, ok := msg.(modelscar.Car_Model); ok {
+
 			Broadcast <- car
 		}
 	}

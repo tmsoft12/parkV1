@@ -99,3 +99,10 @@ func Auth(c *fiber.Ctx) error {
 
 	return c.Next()
 }
+func SetParkNoCookie(c *fiber.Ctx, parkNo string) {
+	c.Cookie(&fiber.Cookie{
+		Name:  "parkno",
+		Value: parkNo,
+		Path:  "/",
+	})
+}

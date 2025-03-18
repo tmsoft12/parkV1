@@ -21,7 +21,7 @@ func CreateJWT(userID int, username string, role modelsuser.RoleType, parkno str
 		"parkno":      parkno,
 		"macusername": macusername,
 		"macpassword": macpassword,
-		"keys":        keys, // Burada JSON stringini kullanıyoruz
+		"keys":        keys,
 		"exp":         expirationTime.Unix(),
 	}
 

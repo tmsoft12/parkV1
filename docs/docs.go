@@ -539,7 +539,7 @@ const docTemplate = `{
         },
         "/api/v1/camera/getdata": {
             "put": {
-                "description": "{\"EventComment\": \"BE5084AG\"}",
+                "description": "{\"EventComment\": \"BE5084AG\", \"ChannelId\": \"8dc9685f-a80b-4d95-ae19-da340efe89ab\", \"ChannelName\": \"P4-6\"}",
                 "consumes": [
                     "application/json"
                 ],
@@ -589,7 +589,7 @@ const docTemplate = `{
                 }
             },
             "post": {
-                "description": "{\"ChannelName\": \"P41\", \"EventComment\": \"BE5084AG\"}",
+                "description": "{\"EventComment\": \"BE5084AG\", \"ChannelId\": \"8dc9685f-a80b-4d95-ae19-da340efe89ab\", \"ChannelName\": \"P4-6\"}",
                 "consumes": [
                     "application/json"
                 ],
@@ -635,7 +635,7 @@ const docTemplate = `{
         },
         "/api/v1/camera/getdata/nows": {
             "put": {
-                "description": "{\"EventComment\": \"BE5084AG\"}",
+                "description": "{\"ChannelName\": \"P3-2\",\"EventComment\": \"BE5084AG\",\"ChannelId\": \"d9b8389a-0727-43d8-afef-c6c937b7f320\"}",
                 "consumes": [
                     "application/json"
                 ],
