@@ -14,8 +14,6 @@ import (
 func LoginMath(username string, role string, park string) error {
 	now := time.Now().Format(config.TimeFormat)
 
-	fmt.Printf("User: %s, Role: %s, Park: %s\n", username, role, park)
-
 	login := modeloperator.Operator{
 		Operator: username,
 		Park:     park,

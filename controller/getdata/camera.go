@@ -57,10 +57,13 @@ func CreateCarEntry(c *fiber.Ctx) error {
 	carData.Reason = "entry"
 	carData.PayStatus = true
 	var existingCar modelscar.Car_Model
-	err := database.DB.Order("id desc").First(&existingCar, "car_number = ? AND status = ?", carData.Car_number, statusInside).Error
+	err := database.DB.Order("id desc").First(&existingCar,
+		"car_number = ? AND (status = ? OR status = ?)",
+		carData.Car_number, statusInside, statusPending).Error
+
 	if err == nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"message": "Car is already inside the parking lot",
+			"message": "Car is already inside or pending entry",
 		})
 	}
 

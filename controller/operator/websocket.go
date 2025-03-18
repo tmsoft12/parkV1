@@ -1,7 +1,6 @@
 package operator
 
 import (
-	"fmt"
 	modelscar "park/models/modelsCar"
 
 	"github.com/gofiber/websocket/v2"
@@ -21,7 +20,6 @@ func Ws(c *websocket.Conn) {
 
 	for {
 		var msg interface{}
-		fmt.Println(msg)
 		if err := c.ReadJSON(&msg); err != nil {
 			break
 		}
