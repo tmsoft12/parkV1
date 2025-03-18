@@ -1,7 +1,9 @@
 package camfix
 
 import (
+	"encoding/json"
 	"fmt"
+	"net/http"
 	"park/database"
 	"park/models/camera"
 	modelsuser "park/models/modelsUser"
@@ -209,24 +211,20 @@ func UpdateCamera(c *fiber.Ctx) error {
 	id := c.Params("id")
 	var datacam camera.CamFix
 
-	// Kamerayı veritabanında bul
 	if err := database.DB.Where("id = ?", id).First(&datacam).Error; err != nil {
 		return c.Status(404).JSON(ErrorResponse{Error: "Camera not found"})
 	}
 
-	// Gelen veriyi parse et
 	var updateReq UpdateCameraTypeRequest
 	if err := c.BodyParser(&updateReq); err != nil {
 		return c.Status(400).JSON(ErrorResponse{Error: "Invalid request body"})
 	}
 
-	// Kamera tipi doğrulaması
 	newType := camera.CameraType(updateReq.Type) // String'i CameraType'e dönüştür
 	if newType == "" || !util.IsValidCamera(newType) {
 		return c.Status(400).JSON(ErrorResponse{Error: "Invalid camera type"})
 	}
 
-	// Sadece Type alanını güncelle
 	if err := database.DB.Model(&datacam).Update("type", newType).Error; err != nil {
 		return c.Status(500).JSON(ErrorResponse{Error: "Internal server error while updating camera"})
 	}
@@ -282,5 +280,104 @@ func DeleteCam(c *fiber.Ctx) error {
 
 	return c.Status(200).JSON(Response{
 		Message: fmt.Sprintf("Camera with ID '%s' successfully deleted", id),
+	})
+}
+
+type CameraType string
+
+const (
+	Inside  CameraType = "inside"
+	Outside CameraType = "outside"
+)
+
+type ConfigResponse struct {
+	Channels []struct {
+		Id   string `json:"Id"`
+		Name string `json:"Name"`
+	} `json:"Channels"`
+}
+
+// SyncCamFixWithConfig godoc
+// @Summary Sync CamFix records with config data
+// @Description Fetches data from config endpoint and synchronizes CamFix records: creates new ones, updates existing ones, and deletes obsolete ones.
+// @Tags CamFix
+// @Accept json
+// @Produce json
+// // @Failure 500 {object} ErrorResponse "Internal server error"
+// @Router /api/v1/sync-camfix [get]
+func SyncCamFixWithConfig(c *fiber.Ctx) error {
+	resp, err := http.Get("http://127.0.0.1:4000/config")
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(ErrorResponse{
+			Error: "Failed to fetch config data: " + err.Error(),
+		})
+	}
+	defer resp.Body.Close()
+
+	var config ConfigResponse
+	if err := json.NewDecoder(resp.Body).Decode(&config); err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(ErrorResponse{
+			Error: "Failed to decode config data: " + err.Error(),
+		})
+	}
+
+	configChannels := make(map[string]string)
+	for _, channel := range config.Channels {
+		configChannels[channel.Name] = channel.Id
+	}
+
+	var existingCams []camera.CamFix
+	if err := database.DB.Find(&existingCams).Error; err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(ErrorResponse{
+			Error: "Failed to fetch existing cameras: " + err.Error(),
+		})
+	}
+
+	for _, cam := range existingCams {
+		if _, exists := configChannels[cam.ChannelName]; !exists {
+			if err := database.DB.Delete(&cam).Error; err != nil {
+				return c.Status(fiber.StatusInternalServerError).JSON(ErrorResponse{
+					Error: fmt.Sprintf("Failed to delete camera with ChannelName '%s': %v", cam.ChannelName, err),
+				})
+			}
+		}
+	}
+
+	for channelName, channelId := range configChannels {
+		var existingCam camera.CamFix
+		err := database.DB.Where("channel_name = ?", channelName).First(&existingCam).Error
+		if err != nil {
+			newCam := camera.CamFix{
+				ChannelName: channelName,
+				ChannelId:   channelId,
+				Type:        camera.CameraType(Outside),
+			}
+			if err := database.DB.Create(&newCam).Error; err != nil {
+				return c.Status(fiber.StatusInternalServerError).JSON(ErrorResponse{
+					Error: fmt.Sprintf("Failed to create camera with ChannelName '%s': %v", channelName, err),
+				})
+			}
+		} else {
+			if existingCam.ChannelId != channelId {
+				existingCam.ChannelId = channelId
+				if err := database.DB.Save(&existingCam).Error; err != nil {
+					return c.Status(fiber.StatusInternalServerError).JSON(ErrorResponse{
+						Error: fmt.Sprintf("Failed to update camera with ChannelName '%s': %v", channelName, err),
+					})
+				}
+			}
+		}
+	}
+
+	var updatedCams []camera.CamFix
+	if err := database.DB.Find(&updatedCams).Error; err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(ErrorResponse{
+			Error: "Failed to fetch updated cameras: " + err.Error(),
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"message": "CamFix records synchronized successfully",
+		"data":    updatedCams,
 	})
 }

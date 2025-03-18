@@ -1042,6 +1042,18 @@ paths:
       summary: Search for cars
       tags:
       - cars
+  /api/v1/sync-camfix:
+    get:
+      consumes:
+      - application/json
+      description: 'Fetches data from config endpoint and synchronizes CamFix records:
+        creates new ones, updates existing ones, and deletes obsolete ones.'
+      produces:
+      - application/json
+      responses: {}
+      summary: Sync CamFix records with config data
+      tags:
+      - CamFix
   /api/v1/type/{id}:
     patch:
       consumes:

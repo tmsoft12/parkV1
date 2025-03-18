@@ -28,7 +28,7 @@ func main() {
 		// AllowOrigins: "*",.
 		AllowCredentials: true,
 		AllowHeaders:     "Origin, Content-Type, Accept",
-		AllowMethods:     "GET, POST, PUT, DELETE",
+		AllowMethods:     "GET, POST, PUT, DELETE ,PATCH",
 	}))
 	app.Get("/swagger/*", swagger.HandlerDefault)
 	go operator.HandleMessages()

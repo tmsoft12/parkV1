@@ -1161,6 +1161,22 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v1/sync-camfix": {
+            "get": {
+                "description": "Fetches data from config endpoint and synchronizes CamFix records: creates new ones, updates existing ones, and deletes obsolete ones.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "CamFix"
+                ],
+                "summary": "Sync CamFix records with config data",
+                "responses": {}
+            }
+        },
         "/api/v1/type/{id}": {
             "patch": {
                 "description": "Update only the Type of a camera by its ID",
