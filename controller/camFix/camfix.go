@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
 	"park/database"
 	"park/models/camera"
 	modelsuser "park/models/modelsUser"
@@ -306,7 +307,17 @@ type ConfigResponse struct {
 // // @Failure 500 {object} ErrorResponse "Internal server error"
 // @Router /api/v1/sync-camfix [get]
 func SyncCamFixWithConfig(c *fiber.Ctx) error {
-	resp, err := http.Get("http://127.0.0.1:4000/config")
+	var user modelsuser.MacUser
+	if err := database.DB.First(&user).Error; err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(ErrorResponse{
+			Error: "Failed to fetch MacUser data: " + err.Error(),
+		})
+	}
+	macroscope := os.Getenv("MACROSCOP_URL")
+	url := fmt.Sprintf("http://%s/configex?login=%s&password=%s&responsetype=json", macroscope, user.MacUsername, user.MacPassword)
+	fmt.Println(url)
+	resp, err := http.Get(url)
+
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(ErrorResponse{
 			Error: "Failed to fetch config data: " + err.Error(),

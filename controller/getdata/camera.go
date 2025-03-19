@@ -148,7 +148,14 @@ func CreateCarExit(c *fiber.Ctx) error {
 	carData.End_time = endTimeStr
 	carData.Reason = "waiting"
 	carData.CameraID = string(capturedData.ChannelName)
-
+	if carData.ParkNo != capturedData.ChannelName[:2] {
+		fmt.Println("Park NO", carData.ParkNo)
+		fmt.Println(capturedData.ChannelName[:2])
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "Car is not in the right park",
+			"car":     carData,
+		})
+	}
 	if err := database.DB.Model(&carData).Updates(carData).Error; err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"message": "Database update failed",
@@ -161,6 +168,7 @@ func CreateCarExit(c *fiber.Ctx) error {
 	ip := os.Getenv("HOST")
 	port := os.Getenv("PORT")
 	carData.Image_Url = fmt.Sprintf("http://%s:%s/plate/%s", ip, port, carData.Image_Url)
+
 	operator.Broadcast <- carData
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
